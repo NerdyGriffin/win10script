@@ -497,7 +497,7 @@ function Show-Json-Menu {
 		Write-Host "3: Desktop Preset" | Tee-Object -FilePath $LogPath -Append
 		Write-Host "N: Press 'N' to skip this." | Tee-Object -FilePath $LogPath -Append
 		Write-Host "Q: Press 'Q' to stop the entire script." | Tee-Object -FilePath $LogPath -Append
-		$selection = Read-Host "Please make a selection"
+		$selection = Read-Host "Please make a selection" | Tee-Object -FilePath $LogPath -Append
 		switch ($selection) {
 			1 {	Write-Host "Installing OpenSSH Server " | Tee-Object -FilePath $LogPath -Append }
 			2 {	Write-Host "Installing Laptop preset." | Tee-Object -FilePath $LogPath -Append }
