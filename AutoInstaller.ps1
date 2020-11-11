@@ -185,7 +185,7 @@ $tweaks = @(
 	# "HideServerManagerOnLogin",   # "ShowServerManagerOnLogin",
 	# "DisableShutdownTracker",     # "EnableShutdownTracker",
 	# "DisablePasswordPolicy",      # "EnablePasswordPolicy",
-	"EnableCtrlAltDelLogin", # "DisableCtrlAltDelLogin",
+	"EnableCtrlAltDelLogin" # "DisableCtrlAltDelLogin",
 	# "DisableIEEnhancedSecurity",  # "EnableIEEnhancedSecurity",
 	# "EnableAudio",                # "DisableAudio",
 
