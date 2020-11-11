@@ -61,10 +61,7 @@
                 "irfanview",
                 "fsviewer",
                 "gimp",
-                "becyicongrabber",
-                "icofx",
-                "nirext",
-                "iconsext"
+                "becyicongrabber"
             ]
         },
         {
@@ -264,8 +261,7 @@
             "name": "GPU Utilities",
             "packages": [
                 "geforce-experience",
-                "msiafterburner",
-                "nvidia-profile-inspector"
+                "msiafterburner"
             ]
         },
         {
@@ -345,6 +341,15 @@
     ],
     "optional": [
         {
+            "name": "Image Software",
+            "packages": [
+                "becyicongrabber",
+                "icofx",
+                "nirext",
+                "iconsext"
+            ]
+        },
+        {
             "name": "LaTeX",
             "packages": [
                 "miktex",
@@ -378,7 +383,8 @@
         {
             "name": "GPU Utilities",
             "packages": [
-                "evga-precision-xoc"
+                "evga-precision-xoc",
+                "nvidia-profile-inspector"
             ]
         }
     ]

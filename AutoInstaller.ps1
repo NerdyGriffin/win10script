@@ -42,7 +42,7 @@ $tweaks = @(
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
 	"GriffinRegistryTweaks",
 	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
-	"InstallPowerShellPackageManagement",
+	# "InstallPowerShellPackageManagement",
 	"InstallPowerline",
 	"InstallIconExportPowerShell",
 	"CustomWindowsTerminalSettings",
@@ -59,7 +59,7 @@ $tweaks = @(
 	"DisableWebSearch", # "EnableWebSearch",
 	"DisableAppSuggestions", # "EnableAppSuggestions",
 	"DisableActivityHistory", # "EnableActivityHistory",
-	"DisableBackgroundApps", # "EnableBackgroundApps",
+	# "DisableBackgroundApps", # "EnableBackgroundApps",
 	"DisableLocationTracking", # "EnableLocationTracking",
 	"DisableMapUpdates", # "EnableMapUpdates",
 	"DisableFeedback", # "EnableFeedback",
@@ -69,14 +69,14 @@ $tweaks = @(
 	"DisableErrorReporting", # "EnableErrorReporting",
 	"SetP2PUpdateLocal", # "SetP2PUpdateInternet",
 	"DisableDiagTrack", # "EnableDiagTrack",
-	"DisableWAPPush", # "EnableWAPPush",
+	# "DisableWAPPush", # "EnableWAPPush",
 
 	### Security Tweaks ###
 	"SetUACLow", # "SetUACHigh",
 	# "EnableSharingMappedDrives",  # "DisableSharingMappedDrives",
 	# "DisableAdminShares",           # "EnableAdminShares",
 	"DisableSMB1", # "EnableSMB1",
-	# "DisableSMBServer",           # "EnableSMBServer",
+	"DisableSMBServer", # "EnableSMBServer",
 	# "DisableLLMNR",               # "EnableLLMNR",
 	"SetCurrentNetworkPrivate", # "SetCurrentNetworkPublic",
 	"SetUnknownNetworksPrivate", # "SetUnknownNetworksPublic",
@@ -90,15 +90,15 @@ $tweaks = @(
 	# "EnableCIMemoryIntegrity",    # "DisableCIMemoryIntegrity",
 	#"DisableScriptHost",            # "EnableScriptHost",
 	#"EnableDotNetStrongCrypto",     # "DisableDotNetStrongCrypto",
-	"DisableMeltdownCompatFlag", # "EnableMeltdownCompatFlag"
+	# "DisableMeltdownCompatFlag", # "EnableMeltdownCompatFlag"
 
 	### Service Tweaks ###
-	"DisableUpdateMSRT", # "EnableUpdateMSRT",
-	"DisableUpdateDriver", # "EnableUpdateDriver",
-	"DisableUpdateRestart", # "EnableUpdateRestart",
-	"DisableHomeGroups", # "EnableHomeGroups",
-	"DisableSharedExperiences", # "EnableSharedExperiences",
-	"DisableRemoteAssistance", # "EnableRemoteAssistance",
+	# "DisableUpdateMSRT", # "EnableUpdateMSRT",
+	# "DisableUpdateDriver", # "EnableUpdateDriver",
+	# "DisableUpdateRestart", # "EnableUpdateRestart",
+	# "DisableHomeGroups", # "EnableHomeGroups",
+	# "DisableSharedExperiences", # "EnableSharedExperiences",
+	# "DisableRemoteAssistance", # "EnableRemoteAssistance",
 	"EnableRemoteDesktop", # "DisableRemoteDesktop",
 	"DisableAutoplay", # "EnableAutoplay",
 	"DisableAutorun", # "EnableAutorun",
@@ -107,10 +107,10 @@ $tweaks = @(
 	"DisableSuperfetch", # "EnableSuperfetch",
 	"EnableIndexing",
 	"SetBIOSTimeUTC", # "SetBIOSTimeLocal",
-	"DisableHibernation", # "EnableHibernation",          #
+	"EnableHibernation", # "DisableHibernation",
 	"EnableSleepButton", # "DisableSleepButton",
 	"DisableSleepTimeout", # "EnableSleepTimeout",
-	# "DisableFastStartup",         # "EnableFastStartup",
+	"DisableFastStartup", # "EnableFastStartup",
 
 	### UI Tweaks ###
 	# "DisableActionCenter", # "EnableActionCenter",
@@ -121,14 +121,14 @@ $tweaks = @(
 	"DisableStickyKeys", # "EnableStickyKeys",
 	"ShowTaskManagerDetails"        # "HideTaskManagerDetails",
 	"ShowFileOperationsDetails", # "HideFileOperationsDetails",
-	"DisableFileDeleteConfirm",	# "EnableFileDeleteConfirm",
+	# "DisableFileDeleteConfirm",	# "EnableFileDeleteConfirm",
 	"HideTaskbarSearch",
 	#"ShowTaskbarSearchIcon",      # "ShowTaskbarSearchBox",
 	# "HideTaskView", # "ShowTaskView",
 	# "ShowSmallTaskbarIcons",        # "ShowLargeTaskbarIcons",
 	"SetTaskbarCombineNever", # "SetTaskbarCombineWhenFull",    # "SetTaskbarCombineAlways",
 	"HideTaskbarPeopleIcon", # "ShowTaskbarPeopleIcon",
-	"HideTrayIcons", # "ShowTrayIcons",
+	# "ShowTrayIcons", # "HideTrayIcons",
 	"DisableSearchAppInStore", # "EnableSearchAppInStore",
 	"DisableNewAppPrompt", # "EnableNewAppPrompt",
 	# "SetControlPanelSmallIcons",  # "SetControlPanelLargeIcons",  # "SetControlPanelCategories",
@@ -165,13 +165,13 @@ $tweaks = @(
 
 	### Application Tweaks ###
 	"EnableOneDrive",
-	"InstallMsftBloat", # "UninstallMsftBloat",
+	# "UninstallMsftBloat", # "InstallMsftBloat",
 	"UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
-	"InstallWindowsStore", # "UninstallWindowsStore",
-	"EnableXboxFeatures", # "DisableXboxFeatures",
+	# "UninstallWindowsStore",      # "InstallWindowsStore",
+	"EnableXboxFeatures", # "DisableXboxFeatures",          # "EnableXboxFeatures",
 	"DisableAdobeFlash", # "EnableAdobeFlash",
 	"InstallMediaPlayer", # "UninstallMediaPlayer",
-	"InstallInternetExplorer", # "UninstallInternetExplorer", # Used for dev testing
+	# "UninstallInternetExplorer", # "InstallInternetExplorer",
 	# "UninstallWorkFolders", # "InstallWorkFolders",
 	"InstallLinuxSubsystem", # "UninstallLinuxSubsystem",
 	"InstallHyperV", # "UninstallHyperV",
@@ -420,7 +420,8 @@ Function InstallPresetFromJson {
 					nvm install 9.11.1
 				}
 			}
-			'd' { # Debug Mode
+			'd' {
+				# Debug Mode
 				$DebugPreference = "Continue"
 				Write-Debug "DEBUG: Calling 'choco list <PackageName>' for each package..." -ForegroundColor Green
 				foreach ($Package in $ChocoPackageArray) {
@@ -535,34 +536,34 @@ Function InstallOpenSSHServer {
 		$selection = Read-Host "Please make a selection"
 		switch ($selection) {
 			'y' {
-	Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
-	# Install the OpenSSH Client
-	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
-	# Install the OpenSSH Server
-	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
-	refreshenv
-	Start-Service sshd
-	Start-Service ssh-agent
-	# OPTIONAL but recommended:
-	Set-Service sshd -StartupType Automatic
-	Set-Service ssh-agent -StartupType Automatic
-	refreshenv
-	# Confirm the Firewall rule is configured. It should be created automatically by setup.
-	Get-NetFirewallRule -Name *ssh*
-	# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
-	# If the firewall does not exist, create one
-	New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
-	refreshenv
-	# Make sure you're running as an Administrator
-	Start-Service ssh-agent
-	# This should return a status of Running
-	Get-Service ssh-agent
-	# Now load your key files into ssh-agent
-	ssh-add C:\Users\NerdyGriffin\.ssh\id_rsa
-	# Set the default shell to be PowerShell.exe
-	New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
-	refreshenv
-	Write-Host "OpenSSH installation is now be complete" -ForegroundColor Green
+				Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
+				# Install the OpenSSH Client
+				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+				# Install the OpenSSH Server
+				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+				refreshenv
+				Start-Service sshd
+				Start-Service ssh-agent
+				# OPTIONAL but recommended:
+				Set-Service sshd -StartupType Automatic
+				Set-Service ssh-agent -StartupType Automatic
+				refreshenv
+				# Confirm the Firewall rule is configured. It should be created automatically by setup.
+				Get-NetFirewallRule -Name *ssh*
+				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
+				# If the firewall does not exist, create one
+				New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+				refreshenv
+				# Make sure you're running as an Administrator
+				Start-Service ssh-agent
+				# This should return a status of Running
+				Get-Service ssh-agent
+				# Now load your key files into ssh-agent
+				ssh-add C:\Users\NerdyGriffin\.ssh\id_rsa
+				# Set the default shell to be PowerShell.exe
+				New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+				refreshenv
+				Write-Host "OpenSSH installation is now be complete" -ForegroundColor Green
 			}
 			'n' { Break }
 			'q' { Exit }
@@ -2364,7 +2365,7 @@ function UninstallThirdPartyBloat {
 	Get-AppxPackage "2414FC7A.Viber" | Remove-AppxPackage
 	Get-AppxPackage "41038Axilesoft.ACGMediaPlayer" | Remove-AppxPackage
 	Get-AppxPackage "46928bounde.EclipseManager" | Remove-AppxPackage
-	# Get-AppxPackage "4DF9E0F8.Netflix" | Remove-AppxPackage
+	Get-AppxPackage "4DF9E0F8.Netflix" | Remove-AppxPackage
 	Get-AppxPackage "64885BlueEdge.OneCalendar" | Remove-AppxPackage
 	Get-AppxPackage "7EE7776C.LinkedInforWindows" | Remove-AppxPackage
 	Get-AppxPackage "828B5831.HiddenCityMysteryofShadows" | Remove-AppxPackage
