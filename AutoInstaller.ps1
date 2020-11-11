@@ -396,8 +396,8 @@ Function InstallPresetFromJson {
 					Write-Host "Installing "$Package.PackageName""
 					choco install $Package.PackageName -y --limit-output
 				}
-				refreshenv
-				Invoke-Expression InstallOpenSSHServer
+				# refreshenv
+				# Invoke-Expression InstallOpenSSHServer # Moved to be called in $tweaks
 				refreshenv
 				if ($PresetNumber -gt 1) {
 					Write-Host 'Installing Node.js and npm '
