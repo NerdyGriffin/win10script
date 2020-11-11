@@ -198,6 +198,7 @@
                 "arduino",
                 "checksum",
                 "cmake",
+                "cuda",
                 "git",
                 "git-credential-manager-for-windows",
                 "gitkraken",
@@ -264,7 +265,8 @@
             "name": "GPU Utilities",
             "packages": [
                 "geforce-experience",
-                "msiafterburner"
+                "msiafterburner",
+                "nvidia-profile-inspector"
             ]
         },
         {
