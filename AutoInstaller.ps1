@@ -440,23 +440,20 @@ function Show-Json-Menu {
 	param(
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
-		[string]$Title,
-
-		[Parameter(Mandatory)]
-		[ValidateNotNullOrEmpty()]
 		[string]$LogPath
 	)
 
 	do {
 		Clear-Host
-		Write-Host "================ $Title ================" | Tee-Object -FilePath $LogPath -Append
+		Write-Host "================ Select Preset to load from JSON ================" | Tee-Object -FilePath $LogPath -Append
 		Write-Host "0: Detect automatically (default)" | Tee-Object -FilePath $LogPath -Append
 		Write-Host "1: OpenSSH Server" | Tee-Object -FilePath $LogPath -Append
 		Write-Host "2: Laptop Preset" | Tee-Object -FilePath $LogPath -Append
 		Write-Host "3: Desktop Preset" | Tee-Object -FilePath $LogPath -Append
+		Write-Host | Tee-Object -FilePath $LogPath -Append
 		Write-Host "N: Press 'N' to skip this." | Tee-Object -FilePath $LogPath -Append
 		Write-Host "Q: Press 'Q' to stop the entire script." | Tee-Object -FilePath $LogPath -Append
-		$selection = Read-Host "Please make a selection" | Tee-Object -FilePath $LogPath -Append
+		$selection = Read-Host "Please make a selection"
 		switch ($selection) {
 			1 {	Write-Host "Installing OpenSSH Server " | Tee-Object -FilePath $LogPath -Append }
 			2 {	Write-Host "Installing Laptop preset." | Tee-Object -FilePath $LogPath -Append }
@@ -472,13 +469,16 @@ function Show-Json-Menu {
 			}
 		}
 	}
-	until (($selection -ge 0 -and $selection -le 3) -or $selection -match "q")
-	if ($selection -ge 0 -and $selection -le 3) { InstallPresetFromJson -PresetNumber $selection | Tee-Object -FilePath $LogPath -Append }
+	until (($selection -ge 0 -and $selection -le 3) -or $selection -match "n" -or $selection -match "q")
+	if ($selection -ge 0 -and $selection -le 3) {
+		try { InstallPresetFromJson -PresetNumber $selection | Tee-Object -FilePath $LogPath -Append }
+		catch { InstallPresetFromJson -PresetNumber $selection }
+	}
 }
 
 Function InstallGriffinProgs {
 	$LogPath = $PSScriptRoot + "\InstallPresetFromJson.log"
-	Show-Json-Menu -Title "Select Preset to load from JSON " -LogPath $LogPath | Tee-Object -FilePath $LogPath -Append
+	Show-Json-Menu -Title "Select Preset to load from JSON" -LogPath $LogPath | Tee-Object -FilePath $LogPath -Append
 }
 
 Function InstallPowerShellPackageManagement {
