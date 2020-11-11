@@ -406,6 +406,7 @@ Function InstallPresetFromJson {
 					refreshenv
 					powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
 					refreshenv
+					# TODO: Move all the PowerLine install stuff to its own function
 					Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
 					Install-Module posh-git -Scope CurrentUser -Force
 					Install-Module oh-my-posh -Scope CurrentUser -Force
