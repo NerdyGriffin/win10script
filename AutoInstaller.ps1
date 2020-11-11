@@ -518,6 +518,7 @@ function Show-Json-Menu {
 }
 
 Function InstallGriffinProgs {
+	$LogPath = $PSScriptRoot + "\InstallPresetFromJson.log"
 	Show-Json-Menu -Title "Select Preset to load from JSON " -LogPath $LogPath | Tee-Object -FilePath $LogPath -Append
 }
 
