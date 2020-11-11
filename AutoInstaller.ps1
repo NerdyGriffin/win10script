@@ -211,7 +211,7 @@ function Show-Choco-Menu {
 		[string]$ChocoInstall
 	)
 
- do {
+	do {
 		Clear-Host
 		Write-Host "================ $Title ================"
 		Write-Host "Y: Press 'Y' to do this."
@@ -223,8 +223,9 @@ function Show-Choco-Menu {
 			'n' { Break }
 			'q' { Exit }
 		}
- }
- until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function TitusRegistryTweaks {
@@ -275,7 +276,7 @@ Function InstallBrave {
 		}
 	}
 	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 Function Install7Zip {
 	Show-Choco-Menu -Title "Do you want to install 7-Zip?" -ChocoInstall "7zip"
@@ -416,6 +417,7 @@ Function InstallPresetFromJson {
 					Write-Host 'Installing Node.js and npm '
 					nvm install -lts
 					nvm install 9.11.1
+					if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				}
 			}
 			'd' {
@@ -481,35 +483,45 @@ Function InstallGriffinProgs {
 
 Function InstallPowerShellPackageManagement {
 	powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function InstallPowerline {
+	Clear-Host
 	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
 	Install-Module posh-git -Scope CurrentUser -Force
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 	Install-Module oh-my-posh -Scope CurrentUser -Force
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 	refreshenv
 	Write-Host "Installing PSReadLine -- [Dependency for Powerline and allows bash-like terminal features"
 	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 	refreshenv
 	Write-Host "Copying custom powershell profile..."
 	$BackupPowerShellProfilePath = $PSScriptRoot + "\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
 	if (Test-Path "$BackupPowerShellProfilePath") {
 		Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts"
 	}
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function InstallIconExportPowerShell {
+	Clear-Host
 	Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
 	Install-Module IconExport -Force
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function CustomWindowsTerminalSettings {
+	Clear-Host
 	# Copy over my custom Windows Terminal settings
 	$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 	$WindowsTerminalLocalSettingsPath = "C:\Users\NerdyGriffin\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 	if (Test-Path "$WindowsTerminalBackupSettingsPath") {
 		Write-Host "Copying custom Windows Terminal config..."
 		Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath"
+		if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 	}
 }
 
@@ -522,6 +534,7 @@ Function SchedulePowerShellUpdateHelp {
 		Trigger     = (New-JobTrigger -Daily -At "3 AM")
 	}
 	Register-ScheduledJob @jobParams
+	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function InstallOpenSSHServer {
@@ -537,20 +550,23 @@ Function InstallOpenSSHServer {
 				Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
 				# Install the OpenSSH Client
 				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+				if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				# Install the OpenSSH Server
 				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+				if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				refreshenv
-				Start-Service sshd
-				Start-Service ssh-agent
+				Start-Service sshd;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+				Start-Service ssh-agent;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				# OPTIONAL but recommended:
-				Set-Service sshd -StartupType Automatic
-				Set-Service ssh-agent -StartupType Automatic
+				Set-Service sshd -StartupType Automatic;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+				Set-Service ssh-agent -StartupType Automatic;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				refreshenv
 				# Confirm the Firewall rule is configured. It should be created automatically by setup.
 				Get-NetFirewallRule -Name *ssh*
 				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
 				# If the firewall does not exist, create one
 				New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+				if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				refreshenv
 				# Make sure you're running as an Administrator
 				Start-Service ssh-agent
