@@ -31,7 +31,6 @@ $tweaks = @(
 	### Chris Titus Tech Additions
 	"TitusRegistryTweaks",
 	"InstallTitusProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
-	"InstallGriffinProgs",
 	"Install7Zip",
 	"InstallNotepadplusplus",
 	"InstallIrfanview",
@@ -39,6 +38,10 @@ $tweaks = @(
 	"InstallAdobe",
 	"InstallBrave",
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
+
+	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
+	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
+	"InstallOpenSSHServer",
 
 	### Windows Apps
 	# "DebloatAll",
@@ -290,50 +293,23 @@ Function ChangeDefaultApps {
 	dism /online /Import-DefaultAppAssociations:"%UserProfile%\Desktop\MyDefaultAppAssociations.xml"
 }
 
-Function InstallOpenSSHServer {
-	Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
-	# Install the OpenSSH Client
-	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
-	# Install the OpenSSH Server
-	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
-	refreshenv
-	Start-Service sshd
-	Start-Service ssh-agent
-	# OPTIONAL but recommended:
-	Set-Service sshd -StartupType Automatic
-	Set-Service ssh-agent -StartupType Automatic
-	refreshenv
-	# Confirm the Firewall rule is configured. It should be created automatically by setup.
-	Get-NetFirewallRule -Name *ssh*
-	# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
-	# If the firewall does not exist, create one
-	New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
-	refreshenv
-	# Make sure you're running as an Administrator
-	Start-Service ssh-agent
-	# This should return a status of Running
-	Get-Service ssh-agent
-	# Now load your key files into ssh-agent
-	ssh-add C:\Users\NerdyGriffin\.ssh\id_rsa
-	# Set the default shell to be PowerShell.exe
-	New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
-	refreshenv
-	Write-Host "OpenSSH installation is now be complete" -ForegroundColor Green
-}
+#########
+# Personalized Griffin Customizations
+#########
 
+$PSScriptRoot
 Function InstallPresetFromJson {
 	param(
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
 		[string]$PresetNumber
 	)
-	$PSScriptRoot
 	$PresetPackagesFilePath = $PSScriptRoot + "\presets.json"
 	if (Test-Path $PresetPackagesFilePath) {
 		$PresetPackages = Get-Content $PresetPackagesFilePath | ConvertFrom-Json
 	} else {
 		Write-Error "Could not find presets.json"
-		Break
+		Exit
 	}
 	# Initialize the array with some default packages
 	$ChocoPackageArray = New-Object System.Collections.ArrayList
@@ -414,13 +390,12 @@ Function InstallPresetFromJson {
 		switch -regex ($selection) {
 			"y(es)?" {
 				Write-Host "Beginning install..." -ForegroundColor Green
-
 				foreach ($Package in $ChocoPackageArray) {
 					Write-Host "Installing "$Package.PackageName""
-					choco install $Package.PackageName -y --force --limit-output
+					choco install $Package.PackageName -y --limit-output
 				}
 				refreshenv
-				InstallOpenSSHServer
+				Invoke-Expression InstallOpenSSHServer
 				refreshenv
 				if ($PresetNumber -gt 1) {
 					Write-Host 'Installing Node.js and npm '
@@ -504,23 +479,27 @@ function Show-Json-Menu {
 	param(
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
-		[string]$Title
+		[string]$Title,
+
+		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
+		[string]$LogPath
 	)
 
 	do {
 		Clear-Host
-		Write-Host "================ $Title ================"
-		Write-Host "0: Detect automatically (default)"
-		Write-Host "1: OpenSSH Server"
-		Write-Host "2: Laptop Preset"
-		Write-Host "3: Desktop Preset"
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
+		Write-Host "================ $Title ================" | Tee-Object -FilePath $LogPath -Append
+		Write-Host "0: Detect automatically (default)" | Tee-Object -FilePath $LogPath -Append
+		Write-Host "1: OpenSSH Server" | Tee-Object -FilePath $LogPath -Append
+		Write-Host "2: Laptop Preset" | Tee-Object -FilePath $LogPath -Append
+		Write-Host "3: Desktop Preset" | Tee-Object -FilePath $LogPath -Append
+		Write-Host "N: Press 'N' to skip this." | Tee-Object -FilePath $LogPath -Append
+		Write-Host "Q: Press 'Q' to stop the entire script." | Tee-Object -FilePath $LogPath -Append
 		$selection = Read-Host "Please make a selection"Clear-Host
 		switch ($selection) {
-			1 {	Write-Host "Installing OpenSSH Server " }
-			2 {	Write-Host "Installing Laptop preset."	}
-			3 {	Write-Host "Installing Desktop preset." }
+			1 {	Write-Host "Installing OpenSSH Server " | Tee-Object -FilePath $LogPath -Append }
+			2 {	Write-Host "Installing Laptop preset." | Tee-Object -FilePath $LogPath -Append }
+			3 {	Write-Host "Installing Desktop preset." | Tee-Object -FilePath $LogPath -Append }
 			'n' { Break }
 			'q' { Exit }
 			default {
@@ -533,11 +512,57 @@ function Show-Json-Menu {
 		}
 	}
 	until (($selection -ge 0 -and $selection -le 3) -or $selection -match "q")
-	if ($selection -ge 0 -and $selection -le 3) { InstallPresetFromJson -PresetNumber $selection }
+	if ($selection -ge 0 -and $selection -le 3) { InstallPresetFromJson -PresetNumber $selection | Tee-Object -FilePath $LogPath -Append }
 }
 
 Function InstallGriffinProgs {
-	Show-Json-Menu -Title "Select Preset to load from JSON "
+	Show-Json-Menu -Title "Select Preset to load from JSON " -LogPath $LogPath | Tee-Object -FilePath $LogPath -Append
+}
+
+Function InstallOpenSSHServer {
+	do {
+		Clear-Host
+		Write-Host "================ Do You Want to Install OpenSSH Server? ================"
+		Write-Host "Y: Press 'Y' to do this."
+		Write-Host "N: Press 'N' to skip this."
+		Write-Host "Q: Press 'Q' to stop the entire script."
+		$selection = Read-Host "Please make a selection"
+		switch ($selection) {
+			'y' {
+	Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
+	# Install the OpenSSH Client
+	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+	# Install the OpenSSH Server
+	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+	refreshenv
+	Start-Service sshd
+	Start-Service ssh-agent
+	# OPTIONAL but recommended:
+	Set-Service sshd -StartupType Automatic
+	Set-Service ssh-agent -StartupType Automatic
+	refreshenv
+	# Confirm the Firewall rule is configured. It should be created automatically by setup.
+	Get-NetFirewallRule -Name *ssh*
+	# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
+	# If the firewall does not exist, create one
+	New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+	refreshenv
+	# Make sure you're running as an Administrator
+	Start-Service ssh-agent
+	# This should return a status of Running
+	Get-Service ssh-agent
+	# Now load your key files into ssh-agent
+	ssh-add C:\Users\NerdyGriffin\.ssh\id_rsa
+	# Set the default shell to be PowerShell.exe
+	New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+	refreshenv
+	Write-Host "OpenSSH installation is now be complete" -ForegroundColor Green
+			}
+			'n' { Break }
+			'q' { Exit }
+		}
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 
 ##########
