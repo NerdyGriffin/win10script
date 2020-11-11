@@ -565,8 +565,8 @@ Function InstallOpenSSHServer {
 				Get-NetFirewallRule -Name *ssh*
 				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
 				# If the firewall does not exist, create one
-				New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
-				if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+				New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
+				# if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 				refreshenv
 				# Make sure you're running as an Administrator
 				Start-Service ssh-agent
