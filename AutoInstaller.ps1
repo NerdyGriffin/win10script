@@ -122,7 +122,7 @@ $tweaks = @(
 	# "ShowSmallTaskbarIcons",        # "ShowLargeTaskbarIcons",
 	"SetTaskbarCombineNever", # "SetTaskbarCombineWhenFull",    # "SetTaskbarCombineAlways",
 	"HideTaskbarPeopleIcon", # "ShowTaskbarPeopleIcon",
-	"ShowTrayIcons", # "HideTrayIcons",
+	"HideTrayIcons", # "ShowTrayIcons",
 	"DisableSearchAppInStore", # "EnableSearchAppInStore",
 	"DisableNewAppPrompt", # "EnableNewAppPrompt",
 	# "SetControlPanelSmallIcons",  # "SetControlPanelLargeIcons",  # "SetControlPanelCategories",
@@ -179,7 +179,7 @@ $tweaks = @(
 	# "HideServerManagerOnLogin",   # "ShowServerManagerOnLogin",
 	# "DisableShutdownTracker",     # "EnableShutdownTracker",
 	# "DisablePasswordPolicy",      # "EnablePasswordPolicy",
-	"EnableCtrlAltDelLogin" # "DisableCtrlAltDelLogin",
+	"EnableCtrlAltDelLogin", # "DisableCtrlAltDelLogin",
 	# "DisableIEEnhancedSecurity",  # "EnableIEEnhancedSecurity",
 	# "EnableAudio",                # "DisableAudio",
 
@@ -188,6 +188,8 @@ $tweaks = @(
 	#"UnpinTaskbarIcons",
 
 	### Auxiliary Functions ###
+	"WaitForKey",
+	"Restart"
 )
 
 #########
@@ -346,7 +348,7 @@ Function InstallPresetFromJson {
 				$ChocoPackageArray.Add($Package) | Out-Null
 			}
 		}
-		switch ($Preset) {
+		switch ($PresetNumber) {
 			3 {
 				# Read the desktop  packages from presets.json
 				foreach ($Category in $PresetPackages.desktop) {
@@ -495,7 +497,7 @@ function Show-Json-Menu {
 		Write-Host "3: Desktop Preset" | Tee-Object -FilePath $LogPath -Append
 		Write-Host "N: Press 'N' to skip this." | Tee-Object -FilePath $LogPath -Append
 		Write-Host "Q: Press 'Q' to stop the entire script." | Tee-Object -FilePath $LogPath -Append
-		$selection = Read-Host "Please make a selection"Clear-Host
+		$selection = Read-Host "Please make a selection"
 		switch ($selection) {
 			1 {	Write-Host "Installing OpenSSH Server " | Tee-Object -FilePath $LogPath -Append }
 			2 {	Write-Host "Installing Laptop preset." | Tee-Object -FilePath $LogPath -Append }
@@ -2921,6 +2923,10 @@ Function DebloatAll {
 ##########
 # Parse parameters and apply tweaks
 ##########
+
+if (!(Test-Path "HKCR:\")) {
+	New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT
+}
 
 # Normalize path to preset file
 $preset = ""
