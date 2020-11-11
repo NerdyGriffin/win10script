@@ -162,7 +162,6 @@
         {
             "name": "Terminal Tools",
             "packages": [
-                "powershell-packagemanagement",
                 "microsoft-windows-terminal",
                 "curl",
                 "grep",

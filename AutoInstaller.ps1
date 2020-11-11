@@ -31,6 +31,7 @@ $tweaks = @(
 	### Chris Titus Tech Additions
 	"TitusRegistryTweaks",
 	"InstallTitusProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
+	"InstallGriffinProgs",
 	"Install7Zip",
 	"InstallNotepadplusplus",
 	"InstallIrfanview",
@@ -207,7 +208,7 @@ function Show-Choco-Menu {
 		Write-Host "Y: Press 'Y' to do this."
 		Write-Host "2: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		$selection = 'y' # Read-Host "Please make a selection"
 		switch ($selection) {
 			'y' { choco install $ChocoInstall -y }
 			'n' { Break }
@@ -234,7 +235,7 @@ Function TitusRegistryTweaks {
 }
 Function InstallTitusProgs {
 	Write-Output "Installing Chocolatey"
-	Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+	Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 	choco install chocolatey-core.extension -y
 	Write-Output "Running O&O Shutup with Recommended Settings"
 	Import-Module BitsTransfer
@@ -254,7 +255,7 @@ Function InstallBrave {
 		Write-Host "Y: Press 'Y' to do this."
 		Write-Host "2: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		$selection = 'y' # Read-Host "Please make a selection"
 		switch ($selection) {
 			'y' {
 				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
@@ -263,8 +264,8 @@ Function InstallBrave {
 			'n' { Break }
 			'q' { Exit }
 		}
- }
- until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 
 }
 Function Install7Zip {
@@ -289,24 +290,254 @@ Function ChangeDefaultApps {
 	dism /online /Import-DefaultAppAssociations:"%UserProfile%\Desktop\MyDefaultAppAssociations.xml"
 }
 
-Function InstallPresetFromJson {
-	$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
-	$PresetPackagesFilePath = $PSScriptRoot + "\presets.json"
-	if (!(Test-Path $PresetPackagesFilePath)) {
-		Write-Error "Could not find presets.json"
-		exit 1
-	} else {
-		$PresetPackages = Get-Content $PresetPackagesFilePath | ConvertFrom-Json
-	}
-	# Ask the user to select an installation type
-	$InstallType = Read-Host -Prompt "Choose installation type:
-[0] Detect automatically (default)
-[1] Chocolatey Only
-[2] OpenSSH Server
-[3] Laptop Preset
-[4] Desktop Preset
-"
+Function InstallOpenSSHServer {
+	Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
+	# Install the OpenSSH Client
+	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+	# Install the OpenSSH Server
+	Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+	refreshenv
+	Start-Service sshd
+	Start-Service ssh-agent
+	# OPTIONAL but recommended:
+	Set-Service sshd -StartupType Automatic
+	Set-Service ssh-agent -StartupType Automatic
+	refreshenv
+	# Confirm the Firewall rule is configured. It should be created automatically by setup.
+	Get-NetFirewallRule -Name *ssh*
+	# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
+	# If the firewall does not exist, create one
+	New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+	refreshenv
+	# Make sure you're running as an Administrator
+	Start-Service ssh-agent
+	# This should return a status of Running
+	Get-Service ssh-agent
+	# Now load your key files into ssh-agent
+	ssh-add C:\Users\NerdyGriffin\.ssh\id_rsa
+	# Set the default shell to be PowerShell.exe
+	New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+	refreshenv
+	Write-Host "OpenSSH installation is now be complete" -ForegroundColor Green
+}
 
+Function InstallPresetFromJson {
+	param(
+		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
+		[string]$PresetNumber
+	)
+	$PSScriptRoot
+	$PresetPackagesFilePath = $PSScriptRoot + "\presets.json"
+	if (Test-Path $PresetPackagesFilePath) {
+		$PresetPackages = Get-Content $PresetPackagesFilePath | ConvertFrom-Json
+	} else {
+		Write-Error "Could not find presets.json"
+		Break
+	}
+	# Initialize the array with some default packages
+	$ChocoPackageArray = New-Object System.Collections.ArrayList
+	# Read the chocolatey packages from presets.json
+	foreach ($Category in $PresetPackages.chocolatey) {
+		foreach ($PackageName in $Category.packages) {
+			$Package = New-Object System.Object
+			$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+			$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+			$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Chocolatey"
+			$ChocoPackageArray.Add($Package) | Out-Null
+		}
+	}
+	if ($PresetNumber -eq 1 -or $PresetNumber -eq 3) {
+		# Read the OpenSSH packages from presets.json
+		foreach ($Category in $PresetPackages.openSSH) {
+			foreach ($PackageName in $Category.packages) {
+				$Package = New-Object System.Object
+				$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+				$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+				$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "OpenSSH"
+				$ChocoPackageArray.Add($Package) | Out-Null
+			}
+		}
+	}
+	if ($PresetNumber -gt 1) {
+		# Read the default packages from presets.json
+		foreach ($Category in $PresetPackages.default) {
+			foreach ($PackageName in $Category.packages) {
+				$Package = New-Object System.Object
+				$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+				$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+				$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Default"
+				$ChocoPackageArray.Add($Package) | Out-Null
+			}
+		}
+		switch ($Preset) {
+			3 {
+				# Read the desktop  packages from presets.json
+				foreach ($Category in $PresetPackages.desktop) {
+					foreach ($PackageName in $Category.packages) {
+						$Package = New-Object System.Object
+						$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+						$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+						$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Desktop"
+						$ChocoPackageArray.Add($Package) | Out-Null
+					}
+				}
+			}
+			default {
+				# Read the laptop  packages from presets.json
+				foreach ($Category in $PresetPackages.laptop) {
+					foreach ($PackageName in $Category.packages) {
+						$Package = New-Object System.Object
+						$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+						$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+						$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Laptop"
+						$ChocoPackageArray.Add($Package) | Out-Null
+					}
+				}
+			}
+		}
+	}
+	do {
+		Clear-Host
+		Write-Host "================ The following packages have been selected by this preset ================"
+		# Print out a table of all the selected packages
+		$ChocoPackageArray | Format-Table -Property @{Label = "index"; Expression = { $ChocoPackageArray.IndexOf($_) } }, "PackageName", "Category", "Preset"
+		Write-Host "================ Please confirm that the above list of packages is correct ================"
+		# Get the total number of packages that have been selected for this preset
+		$PackageCount = $ChocoPackageArray.Count
+		Write-Host "$PackageCount packages have been selected for install."
+		Write-Host "================ Do You Want to Install All $PackageCount Packages? ================"
+		Write-Host "Y: Press 'Y' to do this."
+		Write-Host "N: Press 'N' to skip this."
+		Write-Host "Q: Press 'Q' to stop the entire script."
+		$selection = Read-Host "Please make a selection"
+		switch -regex ($selection) {
+			"y(es)?" {
+				Write-Host "Beginning install..." -ForegroundColor Green
+
+				foreach ($Package in $ChocoPackageArray) {
+					Write-Host "Installing "$Package.PackageName""
+					choco install $Package.PackageName -y --force --limit-output
+				}
+				refreshenv
+				InstallOpenSSHServer
+				refreshenv
+				if ($PresetNumber -gt 1) {
+					Write-Host 'Installing Node.js and npm '
+					nvm install -lts
+					nvm install 9.11.1
+					refreshenv
+					powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
+					refreshenv
+					Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
+					Install-Module posh-git -Scope CurrentUser -Force
+					Install-Module oh-my-posh -Scope CurrentUser -Force
+					refreshenv
+					Write-Host "Installing PSReadLine -- [Dependency for Powerline and allows bash-like terminal features"
+					Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
+					refreshenv
+					Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
+					Install-Module IconExport -Force
+					Write-Host "Copying custom powershell profile..."
+					$BackupPowerShellProfilePath = $PSScriptRoot + "\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
+					if (Test-Path "$BackupPowerShellProfilePath") {
+						Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts"
+					}
+					$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
+					if (Test-Path "$PowerShellContextMenuReg") {
+						Write-Host 'Adding "Open PowerShell Here" to Context Menu'
+						reg import $PowerShellContextMenuReg
+					} else {
+						Write-Warning "Could not find 'Add PowerShell to Context Menu.reg'"
+					}
+					Write-Host 'Creating a scheduled job that runs an `Update-Help` command.'
+					$jobParams = @{
+						Name        = 'UpdateHelpJob'
+						Credential  = 'Domain01\User01'
+						ScriptBlock = '{Update-Help}'
+						Trigger     = (New-JobTrigger -Daily -At "3 AM")
+					}
+					Register-ScheduledJob @jobParams
+					$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+					$WindowsTerminalLocalSettingsPath = "C:\Users\NerdyGriffin\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+					if (Test-Path "$WindowsTerminalBackupSettingsPath") {
+						Write-Host "Copying custom Windows Terminal config..."
+						Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath"
+					}
+					Write-Output "|----------------------------------------------------------------" -ForegroundColor Yellow
+					Write-Output "|  Make sure to set the terminal fonts to Cascadia Code PL so that" -ForegroundColor Yellow
+					Write-Output "|  the Powerline features will display correctly" -ForegroundColor Yellow
+					Write-Output "|----------------------------------------------------------------" -ForegroundColor Yellow
+				}
+				Write-Host "Custom install complete!" -ForegroundColor Green
+				$OptionalReboot = Read-Host -Prompt "Would you like to reboot the computer now? [y/n]"
+				switch -regex ($OptionalReboot.ToLower()) {
+					"y(es)?" {
+						Write-Warning "Rebooting the computer..."
+						shutdown /g /d p:0:0 /c "Planned restart after custom chocolatey install script"
+					}
+					default {
+						Write-Host
+						Write-Host "Enjoy your computer!" -ForegroundColor Green
+						Write-Host
+					}
+				}
+			}
+			"d(ebug)?" {
+				$DebugPreference = "Continue"
+				Write-Debug "DEBUG: Calling 'choco list <PackageName>' for each package..." -ForegroundColor Green
+
+				foreach ($Package in $ChocoPackageArray) {
+					Write-Debug "DEBUG: Listing "$Package.PackageName"" -ForegroundColor Cyan
+					choco list $Package.PackageName #--limit-output
+				}
+			}
+			default {
+				Write-Warning "Package install canceled by the user"
+			}
+		}
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+}
+
+function Show-Json-Menu {
+	param(
+		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
+		[string]$Title
+	)
+
+	do {
+		Clear-Host
+		Write-Host "================ $Title ================"
+		Write-Host "0: Detect automatically (default)"
+		Write-Host "1: OpenSSH Server"
+		Write-Host "2: Laptop Preset"
+		Write-Host "3: Desktop Preset"
+		Write-Host "N: Press 'N' to skip this."
+		Write-Host "Q: Press 'Q' to stop the entire script."
+		$selection = Read-Host "Please make a selection"Clear-Host
+		switch ($selection) {
+			1 {	Write-Host "Installing OpenSSH Server " }
+			2 {	Write-Host "Installing Laptop preset."	}
+			3 {	Write-Host "Installing Desktop preset." }
+			'n' { Break }
+			'q' { Exit }
+			default {
+				# Attempt to detect computer by checking the computer name
+				switch ($env:COMPUTERNAME) {
+					"DESKTOP-GRIFFIN" {	$selection = 3 }
+					default {	$selection = 2 }
+				}
+			}
+		}
+	}
+	until (($selection -ge 0 -and $selection -le 3) -or $selection -match "q")
+	if ($selection -ge 0 -and $selection -le 3) { InstallPresetFromJson -PresetNumber $selection }
+}
+
+Function InstallGriffinProgs {
+	Show-Json-Menu -Title "Select Preset to load from JSON "
 }
 
 ##########
@@ -461,7 +692,7 @@ Function EnableActivityHistory {
 # Disable Background application access - ie. if apps can download or update when they aren't used - Cortana is excluded as its inclusion breaks start menu search
 Function DisableBackgroundApps {
 	Write-Output "Disabling Background application access..."
-	Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Exclude "Microsoft.Windows.Cortana*" | foreach {
+	Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Exclude "Microsoft.Windows.Cortana*" | ForEach-Object {
 		Set-ItemProperty -Path $_.PsPath -Name "Disabled" -Type DWord -Value 1
 		Set-ItemProperty -Path $_.PsPath -Name "DisabledByUser" -Type DWord -Value 1
 	}
@@ -470,7 +701,7 @@ Function DisableBackgroundApps {
 # Enable Background application access
 Function EnableBackgroundApps {
 	Write-Output "Enabling Background application access..."
-	Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" | foreach {
+	Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" | ForEach-Object {
 		Remove-ItemProperty -Path $_.PsPath -Name "Disabled" -ErrorAction SilentlyContinue
 		Remove-ItemProperty -Path $_.PsPath -Name "DisabledByUser" -ErrorAction SilentlyContinue
 	}
@@ -1568,7 +1799,7 @@ Function AddENKeyboard {
 Function RemoveENKeyboard {
 	Write-Output "Removing secondary en-US keyboard..."
 	$langs = Get-WinUserLanguageList
-	Set-WinUserLanguageList ($langs | ? { $_.LanguageTag -ne "en-US" }) -Force
+	Set-WinUserLanguageList ($langs | Where-Object { $_.LanguageTag -ne "en-US" }) -Force
 }
 
 # Enable NumLock after startup
@@ -2052,42 +2283,42 @@ Function UninstallMsftBloat {
 # Install default Microsoft applications
 Function InstallMsftBloat {
 	Write-Output "Installing default Microsoft applications..."
-	Get-AppxPackage -AllUsers "Microsoft.3DBuilder" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.AppConnector" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.BingFinance" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.BingNews" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.BingSports" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.BingTranslator" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.BingWeather" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.CommsPhone" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.ConnectivityStore" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.GetHelp" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Getstarted" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Messaging" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Microsoft3DViewer" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.MicrosoftPowerBIForWindows" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.MicrosoftSolitaireCollection" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.MicrosoftStickyNotes" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.MinecraftUWP" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.MSPaint" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.NetworkSpeedTest" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Office.Sway" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.OneConnect" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.People" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Print3D" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.RemoteDesktop" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.SkypeApp" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Wallet" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsAlarms" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsCamera" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.windowscommunicationsapps" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsFeedbackHub" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsMaps" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsPhone" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Windows.Photos" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsSoundRecorder" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.ZuneMusic" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.ZuneVideo" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.3DBuilder" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.AppConnector" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.BingFinance" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.BingNews" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.BingSports" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.BingTranslator" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.BingWeather" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.CommsPhone" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.ConnectivityStore" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.GetHelp" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Getstarted" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Messaging" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Microsoft3DViewer" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.MicrosoftPowerBIForWindows" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.MicrosoftSolitaireCollection" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.MicrosoftStickyNotes" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.MinecraftUWP" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.MSPaint" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.NetworkSpeedTest" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Office.Sway" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.OneConnect" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.People" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Print3D" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.RemoteDesktop" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.SkypeApp" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Wallet" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsAlarms" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsCamera" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.windowscommunicationsapps" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsFeedbackHub" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsMaps" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsPhone" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Windows.Photos" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsSoundRecorder" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.ZuneMusic" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.ZuneVideo" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
 }
 # In case you have removed them for good, you can try to restore the files using installation medium as follows
 # New-Item C:\Mnt -Type Directory | Out-Null
@@ -2133,35 +2364,35 @@ function UninstallThirdPartyBloat {
 # Install default third party applications
 Function InstallThirdPartyBloat {
 	Write-Output "Installing default third party applications..."
-	Get-AppxPackage -AllUsers "2414FC7A.Viber" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "41038Axilesoft.ACGMediaPlayer" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "46928bounde.EclipseManager" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "4DF9E0F8.Netflix" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "64885BlueEdge.OneCalendar" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "7EE7776C.LinkedInforWindows" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "828B5831.HiddenCityMysteryofShadows" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "89006A2E.AutodeskSketchBook" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "9E2F88E3.Twitter" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "A278AB0D.DisneyMagicKingdoms" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "A278AB0D.MarchofEmpires" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "ActiproSoftwareLLC.562882FEEB491" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "AdobeSystemsIncorporated.AdobePhotoshopExpress" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "CAF9E577.Plex" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "D52A8D61.FarmVille2CountryEscape" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "D5EA27B7.Duolingo-LearnLanguagesforFree" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "DB6EA5DB.CyberLinkMediaSuiteEssentials" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "DolbyLaboratories.DolbyAccess" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Drawboard.DrawboardPDF" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Facebook.Facebook" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "flaregamesGmbH.RoyalRevolt2" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "GAMELOFTSA.Asphalt8Airborne" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "KeeperSecurityInc.Keeper" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "king.com.BubbleWitch3Saga" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "king.com.CandyCrushSodaSaga" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "PandoraMediaInc.29680B314EFC2" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "SpotifyAB.SpotifyMusic" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "WinZipComputing.WinZipUniversal" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "XINGAG.XING" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "2414FC7A.Viber" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "41038Axilesoft.ACGMediaPlayer" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "46928bounde.EclipseManager" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "4DF9E0F8.Netflix" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "64885BlueEdge.OneCalendar" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "7EE7776C.LinkedInforWindows" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "828B5831.HiddenCityMysteryofShadows" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "89006A2E.AutodeskSketchBook" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "9E2F88E3.Twitter" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "A278AB0D.DisneyMagicKingdoms" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "A278AB0D.MarchofEmpires" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "ActiproSoftwareLLC.562882FEEB491" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "AdobeSystemsIncorporated.AdobePhotoshopExpress" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "CAF9E577.Plex" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "D52A8D61.FarmVille2CountryEscape" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "D5EA27B7.Duolingo-LearnLanguagesforFree" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "DB6EA5DB.CyberLinkMediaSuiteEssentials" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "DolbyLaboratories.DolbyAccess" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Drawboard.DrawboardPDF" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Facebook.Facebook" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "flaregamesGmbH.RoyalRevolt2" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "GAMELOFTSA.Asphalt8Airborne" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "KeeperSecurityInc.Keeper" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "king.com.BubbleWitch3Saga" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "king.com.CandyCrushSodaSaga" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "PandoraMediaInc.29680B314EFC2" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "SpotifyAB.SpotifyMusic" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "WinZipComputing.WinZipUniversal" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "XINGAG.XING" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
 }
 
 # Uninstall Windows Store
@@ -2174,8 +2405,8 @@ Function UninstallWindowsStore {
 # Install Windows Store
 Function InstallWindowsStore {
 	Write-Output "Installing Windows Store..."
-	Get-AppxPackage -AllUsers "Microsoft.DesktopAppInstaller" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.WindowsStore" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.DesktopAppInstaller" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.WindowsStore" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
 }
 
 # Disable Xbox features
@@ -2196,11 +2427,11 @@ Function DisableXboxFeatures {
 # Enable Xbox features
 Function EnableXboxFeatures {
 	Write-Output "Enabling Xbox features..."
-	Get-AppxPackage -AllUsers "Microsoft.XboxApp" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.XboxIdentityProvider" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.XboxSpeechToTextOverlay" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.XboxGameOverlay" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-	Get-AppxPackage -AllUsers "Microsoft.Xbox.TCUI" | foreach { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.XboxApp" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.XboxIdentityProvider" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.XboxSpeechToTextOverlay" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.XboxGameOverlay" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
+	Get-AppxPackage -AllUsers "Microsoft.Xbox.TCUI" | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
 	Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Type DWord -Value 1
 	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" -Name "AllowGameDVR" -ErrorAction SilentlyContinue
 }
@@ -2678,9 +2909,9 @@ If ($args -And $args[0].ToLower() -eq "-preset") {
 If ($args) {
 	$tweaks = $args
 	If ($preset) {
-		$tweaks = Get-Content $preset -ErrorAction Stop | foreach { $_.Trim() } | where { $_ -ne "" -and $_[0] -ne "#" }
+		$tweaks = Get-Content $preset -ErrorAction Stop | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and $_[0] -ne "#" }
 	}
 }
 
 # Call the desired tweak functions
-$tweaks | foreach { Invoke-Expression $_ }
+$tweaks | ForEach-Object { Invoke-Expression $_ }
