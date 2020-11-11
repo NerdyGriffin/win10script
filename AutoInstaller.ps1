@@ -29,7 +29,7 @@ $tweaks = @(
 	"CreateRestorePoint",
 
 	### Chris Titus Tech Additions
-	"TitusRegistryTweaks",
+	# "TitusRegistryTweaks",
 	"InstallTitusProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	"Install7Zip",
 	"InstallNotepadplusplus",
@@ -40,7 +40,13 @@ $tweaks = @(
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
+	"GriffinRegistryTweaks",
 	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
+	"InstallPowerShellPackageManagement",
+	"InstallPowerline",
+	"InstallIconExportPowerShell",
+	"CustomWindowsTerminalSettings",
+	"SchedulePowerShellUpdateHelp",
 	"InstallOpenSSHServer",
 
 	### Windows Apps
@@ -213,7 +219,7 @@ function Show-Choco-Menu {
 		Write-Host "Y: Press 'Y' to do this."
 		Write-Host "2: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = 'y' # Read-Host "Please make a selection"
+		$selection = Read-Host "Please make a selection"
 		switch ($selection) {
 			'y' { choco install $ChocoInstall -y }
 			'n' { Break }
@@ -227,12 +233,12 @@ Function TitusRegistryTweaks {
 	Write-Output "Improving Windows Update to delay Feature updates and only install Security Updates"
 	### Fix Windows Update to delay feature updates and only update at certain times
 	$UpdatesPath = "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
-	# If (!(Get-ItemProperty $UpdatesPath  BranchReadinessLevel)) { New-ItemProperty -Path $UpdatesPath -Name "BranchReadinessLevel" -Type DWord -Value 20 }
-	# Set-ItemProperty -Path $UpdatesPath -Name "BranchReadinessLevel" -Type DWord -Value 20
-	# If (!(Get-ItemProperty $UpdatesPath  DeferFeatureUpdatesPeriodInDays)) { New-ItemProperty -Path $UpdatesPath -Name "DeferFeatureUpdatesPeriodInDays" -Type DWord -Value 365	}
-	# Set-ItemProperty -Path $UpdatesPath -Name "DeferFeatureUpdatesPeriodInDays" -Type DWord -Value 365
-	# If (!(Get-ItemProperty $UpdatesPath  DeferQualityUpdatesPeriodInDays)) { New-ItemProperty -Path $UpdatesPath -Name "DeferQualityUpdatesPeriodInDays" -Type DWord -Value 4 }
-	# Set-ItemProperty -Path $UpdatesPath -Name "DeferQualityUpdatesPeriodInDays" -Type DWord -Value 4
+	If (!(Get-ItemProperty $UpdatesPath  BranchReadinessLevel)) { New-ItemProperty -Path $UpdatesPath -Name "BranchReadinessLevel" -Type DWord -Value 20 }
+	Set-ItemProperty -Path $UpdatesPath -Name "BranchReadinessLevel" -Type DWord -Value 20
+	If (!(Get-ItemProperty $UpdatesPath  DeferFeatureUpdatesPeriodInDays)) { New-ItemProperty -Path $UpdatesPath -Name "DeferFeatureUpdatesPeriodInDays" -Type DWord -Value 365	}
+	Set-ItemProperty -Path $UpdatesPath -Name "DeferFeatureUpdatesPeriodInDays" -Type DWord -Value 365
+	If (!(Get-ItemProperty $UpdatesPath  DeferQualityUpdatesPeriodInDays)) { New-ItemProperty -Path $UpdatesPath -Name "DeferQualityUpdatesPeriodInDays" -Type DWord -Value 4 }
+	Set-ItemProperty -Path $UpdatesPath -Name "DeferQualityUpdatesPeriodInDays" -Type DWord -Value 4
 	If (!(Get-ItemProperty $UpdatesPath  ActiveHoursEnd)) { New-ItemProperty -Path $UpdatesPath -Name "ActiveHoursEnd" -Type DWord -Value 2	}
 	Set-ItemProperty -Path $UpdatesPath -Name "ActiveHoursEnd" -Type DWord -Value 2
 	If (!(Get-ItemProperty $UpdatesPath  ActiveHoursStart)) { New-ItemProperty -Path $UpdatesPath -Name "ActiveHoursStart" -Type DWord -Value 8 }
@@ -260,7 +266,7 @@ Function InstallBrave {
 		Write-Host "Y: Press 'Y' to do this."
 		Write-Host "2: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = 'y' # Read-Host "Please make a selection"
+		$selection = Read-Host "Please make a selection"
 		switch ($selection) {
 			'y' {
 				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
@@ -300,6 +306,17 @@ Function ChangeDefaultApps {
 #########
 
 $PSScriptRoot
+
+Function GriffinRegistryTweaks {
+	$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
+	if (Test-Path "$PowerShellContextMenuReg") {
+		Write-Host 'Adding "Open PowerShell Here" to Context Menu'
+		reg import $PowerShellContextMenuReg
+	} else {
+		Write-Warning "Could not find 'Add PowerShell to Context Menu.reg'"
+	}
+}
+
 Function InstallPresetFromJson {
 	param(
 		[Parameter(Mandatory)]
@@ -389,93 +406,33 @@ Function InstallPresetFromJson {
 		Write-Host "N: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
 		$selection = Read-Host "Please make a selection"
-		switch -regex ($selection) {
-			"y(es)?" {
+		switch ($selection) {
+			'y' {
 				Write-Host "Beginning install..." -ForegroundColor Green
 				foreach ($Package in $ChocoPackageArray) {
 					Write-Host "Installing "$Package.PackageName""
 					choco install $Package.PackageName -y --limit-output
 				}
-				# refreshenv
-				# Invoke-Expression InstallOpenSSHServer # Moved to be called in $tweaks
 				refreshenv
 				if ($PresetNumber -gt 1) {
 					Write-Host 'Installing Node.js and npm '
 					nvm install -lts
 					nvm install 9.11.1
-					refreshenv
-					powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
-					refreshenv
-					# TODO: Move all the PowerLine install stuff to its own function
-					Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
-					Install-Module posh-git -Scope CurrentUser -Force
-					Install-Module oh-my-posh -Scope CurrentUser -Force
-					refreshenv
-					Write-Host "Installing PSReadLine -- [Dependency for Powerline and allows bash-like terminal features"
-					Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
-					refreshenv
-					Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
-					Install-Module IconExport -Force
-					Write-Host "Copying custom powershell profile..."
-					$BackupPowerShellProfilePath = $PSScriptRoot + "\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
-					if (Test-Path "$BackupPowerShellProfilePath") {
-						Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts"
-					}
-					$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
-					if (Test-Path "$PowerShellContextMenuReg") {
-						Write-Host 'Adding "Open PowerShell Here" to Context Menu'
-						reg import $PowerShellContextMenuReg
-					} else {
-						Write-Warning "Could not find 'Add PowerShell to Context Menu.reg'"
-					}
-					Write-Host 'Creating a scheduled job that runs an `Update-Help` command.'
-					$jobParams = @{
-						Name        = 'UpdateHelpJob'
-						Credential  = 'Domain01\User01'
-						ScriptBlock = '{Update-Help}'
-						Trigger     = (New-JobTrigger -Daily -At "3 AM")
-					}
-					Register-ScheduledJob @jobParams
-					$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-					$WindowsTerminalLocalSettingsPath = "C:\Users\NerdyGriffin\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-					if (Test-Path "$WindowsTerminalBackupSettingsPath") {
-						Write-Host "Copying custom Windows Terminal config..."
-						Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath"
-					}
-					Write-Output "|----------------------------------------------------------------" -ForegroundColor Yellow
-					Write-Output "|  Make sure to set the terminal fonts to Cascadia Code PL so that" -ForegroundColor Yellow
-					Write-Output "|  the Powerline features will display correctly" -ForegroundColor Yellow
-					Write-Output "|----------------------------------------------------------------" -ForegroundColor Yellow
-				}
-				Write-Host "Custom install complete!" -ForegroundColor Green
-				$OptionalReboot = Read-Host -Prompt "Would you like to reboot the computer now? [y/n]"
-				switch -regex ($OptionalReboot.ToLower()) {
-					"y(es)?" {
-						Write-Warning "Rebooting the computer..."
-						shutdown /g /d p:0:0 /c "Planned restart after custom chocolatey install script"
-					}
-					default {
-						Write-Host
-						Write-Host "Enjoy your computer!" -ForegroundColor Green
-						Write-Host
-					}
 				}
 			}
-			"d(ebug)?" {
+			'd' { # Debug Mode
 				$DebugPreference = "Continue"
 				Write-Debug "DEBUG: Calling 'choco list <PackageName>' for each package..." -ForegroundColor Green
-
 				foreach ($Package in $ChocoPackageArray) {
 					Write-Debug "DEBUG: Listing "$Package.PackageName"" -ForegroundColor Cyan
-					choco list $Package.PackageName #--limit-output
+					choco list $Package.PackageName
 				}
 			}
-			default {
-				Write-Warning "Package install canceled by the user"
-			}
+			'n' { Break }
+			'q' { Exit }
 		}
 	}
-	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	until ($selection -match "y" -or $selection -match "d" -or $selection -match "n" -or $selection -match "q")
 }
 
 function Show-Json-Menu {
@@ -521,6 +478,51 @@ function Show-Json-Menu {
 Function InstallGriffinProgs {
 	$LogPath = $PSScriptRoot + "\InstallPresetFromJson.log"
 	Show-Json-Menu -Title "Select Preset to load from JSON " -LogPath $LogPath | Tee-Object -FilePath $LogPath -Append
+}
+
+Function InstallPowerShellPackageManagement {
+	powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
+}
+
+Function InstallPowerline {
+	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
+	Install-Module posh-git -Scope CurrentUser -Force
+	Install-Module oh-my-posh -Scope CurrentUser -Force
+	refreshenv
+	Write-Host "Installing PSReadLine -- [Dependency for Powerline and allows bash-like terminal features"
+	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
+	refreshenv
+	Write-Host "Copying custom powershell profile..."
+	$BackupPowerShellProfilePath = $PSScriptRoot + "\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
+	if (Test-Path "$BackupPowerShellProfilePath") {
+		Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts"
+	}
+}
+
+Function InstallIconExportPowerShell {
+	Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
+	Install-Module IconExport -Force
+}
+
+Function CustomWindowsTerminalSettings {
+	# Copy over my custom Windows Terminal settings
+	$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+	$WindowsTerminalLocalSettingsPath = "C:\Users\NerdyGriffin\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+	if (Test-Path "$WindowsTerminalBackupSettingsPath") {
+		Write-Host "Copying custom Windows Terminal config..."
+		Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath"
+	}
+}
+
+Function SchedulePowerShellUpdateHelp {
+	Write-Host 'Creating a scheduled job that runs an `Update-Help` command.'
+	$jobParams = @{
+		Name        = 'UpdateHelpJob'
+		Credential  = 'Domain01\User01'
+		ScriptBlock = '{Update-Help}'
+		Trigger     = (New-JobTrigger -Daily -At "3 AM")
+	}
+	Register-ScheduledJob @jobParams
 }
 
 Function InstallOpenSSHServer {
