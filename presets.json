@@ -1,0 +1,379 @@
+{
+    "chocolatey": [
+        {
+            "name": "Chocolatey",
+            "packages": [
+                "chocolateygui",
+                "choco-upgrade-all-at",
+                "choco-upgrade-all-at-startup"
+            ]
+        }
+    ],
+    "default": [
+        {
+            "name": "Web Browsers",
+            "packages": [
+                "firefox",
+                "googlechrome",
+                "chromium"
+            ]
+        },
+        {
+            "name": "Office Suite",
+            "packages": [
+                "libreoffice-fresh",
+                "calibre",
+                "adobereader",
+                "kindle"
+            ]
+        },
+        {
+            "name": "LaTeX",
+            "packages": [
+                "texmaker"
+            ]
+        },
+        {
+            "name": "Password Manager",
+            "packages": [
+                "keepass",
+                "lastpass",
+                "bitwarden"
+            ]
+        },
+        {
+            "name": "Math",
+            "packages": [
+                "geogebra"
+            ]
+        },
+        {
+            "name": "Audio Software",
+            "packages": [
+                "freeencoderpack",
+                "foobar2000",
+                "audacity"
+            ]
+        },
+        {
+            "name": "Image Software",
+            "packages": [
+                "irfanview",
+                "fsviewer",
+                "gimp",
+                "becyicongrabber",
+                "icofx",
+                "nirext",
+                "iconsext"
+            ]
+        },
+        {
+            "name": "Video Software",
+            "packages": [
+                "vlc",
+                "k-litecodecpackfull",
+                "obs-studio"
+            ]
+        },
+        {
+            "name": "Blender",
+            "packages": [
+                "blender"
+            ]
+        },
+        {
+            "name": "Chat Clients",
+            "packages": [
+                "slack",
+                "discord",
+                "telegram"
+            ]
+        },
+        {
+            "name": "Video Conferencing",
+            "packages": [
+                "jitsi-meet-electron",
+                "zoom"
+            ]
+        },
+        {
+            "name": "Remote Desktop",
+            "packages": [
+                "vnc-viewer",
+                "parsec"
+            ]
+        },
+        {
+            "name": "Cloud Storage",
+            "packages": [
+                "nextcloud-client",
+                "googledrive",
+                "google-backup-and-sync"
+            ]
+        },
+        {
+            "name": "Downloader",
+            "packages": [
+                "qbittorrent",
+                "megasync"
+            ]
+        },
+        {
+            "name": "File & Storage Utilities",
+            "packages": [
+                "7zip",
+                "etcher",
+                "filebot",
+                "freefilesync",
+                "partitionwizard",
+                "rsync",
+                "rufus"
+            ]
+        },
+        {
+            "name": "Process Management",
+            "packages": [
+                "plasso",
+                "procexp",
+                "procmon"
+            ]
+        },
+        {
+            "name": "Distrubuted Computing",
+            "packages": [
+                "fah"
+            ]
+        },
+        {
+            "name": "VPN",
+            "packages": [
+                "openvpn",
+                "nordvpn",
+                "pia"
+            ]
+        },
+        {
+            "name": "Network Utilities",
+            "packages": [
+                "advanced-ip-scanner",
+                "wireshark"
+            ]
+        },
+        {
+            "name": "Terminal Tools",
+            "packages": [
+                "powershell-packagemanagement",
+                "microsoft-windows-terminal",
+                "curl",
+                "grep",
+                "sed",
+                "wsl"
+            ]
+        },
+        {
+            "name": "Custom Fonts",
+            "packages": [
+                "cascadiafonts"
+            ]
+        },
+        {
+            "name": "Development Dependencies, Compilers, & Runtimes",
+            "packages": [
+                "dotnet",
+                "electron",
+                "jdk8",
+                "jdk11",
+                "nvm",
+                "octave",
+                "openjdk11",
+                "pip",
+                "python",
+                "python3",
+                "strawberryperl"
+            ]
+        },
+        {
+            "name": "Development Tools",
+            "packages": [
+                "androidstudio",
+                "arduino",
+                "checksum",
+                "cmake",
+                "git",
+                "git-credential-manager-for-windows",
+                "gitkraken",
+                "gpg4win",
+                "hxd",
+                "make",
+                "winscp",
+                "winmerge"
+            ]
+        },
+        {
+            "name": "Text Editor",
+            "packages": [
+                "meld",
+                "nano",
+                "notepadplusplus"
+            ]
+        },
+        {
+            "name": "VS Code",
+            "packages": [
+                "vscode",
+                "chocolatey-vscode",
+                "vscode-intellicode",
+                "vscode-pull-request-github",
+                "vscode-gitignore",
+                "vscode-cpptools",
+                "vscode-powershell",
+                "vscode-arduino",
+                "vscode-prettier",
+                "vscode-vsliveshare",
+                "vscode-firefox-debug",
+                "vscode-chrome-debug",
+                "vscode-edge-debug",
+                "vscode-code-runner",
+                "vscode-react-native"
+            ]
+        },
+        {
+            "name": "Visual Studio",
+            "packages": [
+                "visualstudio2017community"
+            ]
+        },
+        {
+            "name": "Windows 10 Improvements",
+            "packages": [
+                "powertoys",
+                "shutup10",
+                "winaero-tweaker",
+                "windowsrepair"
+            ]
+        },
+        {
+            "name": "Hardware Monitoring",
+            "packages": [
+                "hwmonitor",
+                "hwinfo",
+                "cpu-z",
+                "gpu-z"
+            ]
+        },
+        {
+            "name": "GPU Utilities",
+            "packages": [
+                "geforce-experience",
+                "msiafterburner"
+            ]
+        },
+        {
+            "name": "Benchmark & Stress Test",
+            "packages": [
+                "heaven-benchmark",
+                "valley-benchmark",
+                "superpostion-benchmark",
+                "furmark"
+            ]
+        },
+        {
+            "name": "Gaming Peripherals and RGB",
+            "packages": [
+                "logitechgaming"
+            ]
+        },
+        {
+            "name": "Game Launchers",
+            "packages": [
+                "steam",
+                "steam-cleaner",
+                "steamlibrarymanager.portable",
+                "minecraft-launcher"
+            ]
+        }
+    ],
+    "desktop": [
+        {
+            "name": "Gaming Peripherals and RGB",
+            "packages": [
+                "icue"
+            ]
+        },
+        {
+            "name": "Game Launchers",
+            "packages": [
+                "epicgameslauncher",
+                "uplay",
+                "origin",
+                "goggalaxy",
+                "cemu",
+                "dolphin",
+                "twitch"
+            ]
+        },
+        {
+            "name": "Game Engines",
+            "packages": [
+                "unity",
+                "unity-hub"
+            ]
+        }
+    ],
+    "laptop": [
+        {
+            "name": "Virtual Machines",
+            "packages": [
+                "vmwareworkstation"
+            ]
+        }
+    ],
+    "openSSH": [
+        {
+            "name": "OpenSSH",
+            "packages": [
+                "openssh",
+                "ssh-copy-id"
+            ]
+        }
+    ],
+    "optional": [
+        {
+            "name": "LaTeX",
+            "packages": [
+                "miktex",
+                "texstudio"
+            ]
+        },
+        {
+            "name": "Distrubuted Computing",
+            "packages": [
+                "fah"
+            ]
+        },
+        {
+            "name": "Terminal Tools",
+            "packages": [
+                "terminal-icons.powershell"
+            ]
+        },
+        {
+            "name": "Development Tools",
+            "packages": [
+                "sql-server-management-studio"
+            ]
+        },
+        {
+            "name": "Windows 10 Improvements",
+            "packages": [
+                "f.lux"
+            ]
+        },
+        {
+            "name": "GPU Utilities",
+            "packages": [
+                "evga-precision-xoc"
+            ]
+        }
+    ]
+}
