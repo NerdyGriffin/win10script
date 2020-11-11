@@ -198,7 +198,6 @@
                 "arduino",
                 "checksum",
                 "cmake",
-                "cuda",
                 "git",
                 "git-credential-manager-for-windows",
                 "gitkraken",
@@ -295,6 +294,12 @@
         }
     ],
     "desktop": [
+        {
+            "name": "Development Tools",
+            "packages": [
+                "cuda"
+            ]
+        },
         {
             "name": "Gaming Peripherals and RGB",
             "packages": [
