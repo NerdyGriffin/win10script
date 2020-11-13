@@ -3,9 +3,20 @@
         {
             "name": "Chocolatey",
             "packages": [
-                "chocolateygui",
+                "choco-upgrade-all-at-startup",
                 "choco-upgrade-all-at",
-                "choco-upgrade-all-at-startup"
+                "chocolatey-core.extension",
+                "chocolatey-dotnetfx.extension",
+                "chocolatey-fastanswers.extension",
+                "chocolatey-font-helpers.extension",
+                "chocolatey-misc-helpers.extension",
+                "chocolatey-visualstudio.extension",
+                "chocolatey-vscode.extension",
+                "ChocolateyDeploymentUtils",
+                "ChocolateyExplorer",
+                "ChocolateyGUI",
+                "ChocolateyPackageUpdater",
+                "chocolateypowershell"
             ]
         },
         {
@@ -125,19 +136,21 @@
             ]
         },
         {
-            "name": "Custom Fonts",
-            "packages": [
-                "cascadiafonts"
-            ]
-        },
-        {
             "name": "Terminal Tools",
             "packages": [
                 "curl",
                 "grep",
-                "sed",
                 "junction",
-                "microsoft-windows-terminal"
+                "microsoft-windows-terminal",
+                "sed",
+                "terminal-icons.powershell"
+            ]
+        },
+        {
+            "name": "Custom Fonts",
+            "packages": [
+                "cascadiafonts",
+                "cascadia-code-nerd-font"
             ]
         },
         {
