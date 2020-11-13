@@ -1,5 +1,5 @@
 {
-    "chocolatey": [
+    "default": [
         {
             "name": "Chocolatey",
             "packages": [
@@ -7,9 +7,7 @@
                 "choco-upgrade-all-at",
                 "choco-upgrade-all-at-startup"
             ]
-        }
-    ],
-    "default": [
+        },
         {
             "name": "Web Browsers",
             "packages": [
@@ -50,9 +48,9 @@
         {
             "name": "Audio Software",
             "packages": [
-                "freeencoderpack",
+                "audacity",
                 "foobar2000",
-                "audacity"
+                "freeencoderpack"
             ]
         },
         {
@@ -60,8 +58,7 @@
             "packages": [
                 "irfanview",
                 "fsviewer",
-                "gimp",
-                "becyicongrabber"
+                "gimp"
             ]
         },
         {
@@ -128,48 +125,19 @@
             ]
         },
         {
-            "name": "Process Management",
+            "name": "Custom Fonts",
             "packages": [
-                "plasso",
-                "procexp",
-                "procmon"
-            ]
-        },
-        {
-            "name": "Distrubuted Computing",
-            "packages": [
-                "fah"
-            ]
-        },
-        {
-            "name": "VPN",
-            "packages": [
-                "openvpn",
-                "nordvpn",
-                "pia"
-            ]
-        },
-        {
-            "name": "Network Utilities",
-            "packages": [
-                "advanced-ip-scanner",
-                "wireshark"
+                "cascadiafonts"
             ]
         },
         {
             "name": "Terminal Tools",
             "packages": [
-                "microsoft-windows-terminal",
                 "curl",
                 "grep",
                 "sed",
-                "wsl"
-            ]
-        },
-        {
-            "name": "Custom Fonts",
-            "packages": [
-                "cascadiafonts"
+                "junction",
+                "microsoft-windows-terminal"
             ]
         },
         {
@@ -178,7 +146,7 @@
                 "dotnet",
                 "electron",
                 "jdk8",
-                "jdk11",
+                "make",
                 "nvm",
                 "octave",
                 "openjdk11",
@@ -194,49 +162,32 @@
                 "androidstudio",
                 "arduino",
                 "checksum",
-                "cmake",
-                "git",
                 "git-credential-manager-for-windows",
+                "git",
                 "gitkraken",
                 "gpg4win",
                 "hxd",
-                "make",
-                "winscp",
-                "winmerge"
-            ]
-        },
-        {
-            "name": "Text Editor",
-            "packages": [
                 "meld",
                 "nano",
-                "notepadplusplus"
-            ]
-        },
-        {
-            "name": "VS Code",
-            "packages": [
+                "notepadplusplus",
+                "visualstudio2017community",
                 "vscode",
-                "chocolatey-vscode",
-                "vscode-intellicode",
-                "vscode-pull-request-github",
-                "vscode-gitignore",
-                "vscode-cpptools",
-                "vscode-powershell",
-                "vscode-arduino",
-                "vscode-prettier",
-                "vscode-vsliveshare",
-                "vscode-firefox-debug",
-                "vscode-chrome-debug",
-                "vscode-edge-debug",
-                "vscode-code-runner",
-                "vscode-react-native"
+                "winmerge",
+                "winscp"
             ]
         },
         {
-            "name": "Visual Studio",
+            "name": "VPN",
             "packages": [
-                "visualstudio2017community"
+                "openvpn",
+                "nordvpn"
+            ]
+        },
+        {
+            "name": "Network Utilities",
+            "packages": [
+                "advanced-ip-scanner",
+                "wireshark"
             ]
         },
         {
@@ -249,18 +200,25 @@
             ]
         },
         {
+            "name": "Process Management",
+            "packages": [
+                "plasso",
+                "procexp",
+                "procmon"
+            ]
+        },
+        {
             "name": "Hardware Monitoring",
             "packages": [
-                "hwmonitor",
-                "hwinfo",
                 "cpu-z",
-                "gpu-z"
+                "gpu-z",
+                "hwinfo",
+                "hwmonitor"
             ]
         },
         {
             "name": "GPU Utilities",
             "packages": [
-                "geforce-experience",
                 "msiafterburner"
             ]
         },
@@ -291,12 +249,6 @@
     ],
     "desktop": [
         {
-            "name": "Development Tools",
-            "packages": [
-                "cuda"
-            ]
-        },
-        {
             "name": "Gaming Peripherals and RGB",
             "packages": [
                 "icue"
@@ -324,22 +276,13 @@
     ],
     "laptop": [
         {
-            "name": "Virtual Machines",
+            "name": "Office Suite",
             "packages": [
-                "vmwareworkstation"
+                "libreoffice-fresh"
             ]
         }
     ],
-    "openSSH": [
-        {
-            "name": "OpenSSH",
-            "packages": [
-                "openssh",
-                "ssh-copy-id"
-            ]
-        }
-    ],
-    "optional": [
+    "unused": [
         {
             "name": "Image Software",
             "packages": [
@@ -357,9 +300,17 @@
             ]
         },
         {
-            "name": "Distrubuted Computing",
+            "name": "Distributed Computing",
             "packages": [
                 "fah"
+            ]
+        },
+        {
+            "name": "VPN",
+            "packages": [
+                "openvpn",
+                "nordvpn",
+                "pia"
             ]
         },
         {
@@ -383,8 +334,13 @@
         {
             "name": "GPU Utilities",
             "packages": [
-                "evga-precision-xoc",
-                "nvidia-profile-inspector"
+                "evga-precision-xoc"
+            ]
+        },
+        {
+            "name": "Virtual Machines",
+            "packages": [
+                "vmwareworkstation"
             ]
         }
     ]

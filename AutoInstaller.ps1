@@ -22,6 +22,12 @@
 #	- Changed Default Apps to Notepad++, Brave, Irfanview, and more using XML Import feature
 #
 ##########
+# Optional parameter to override all user input prompts with 'yes'
+param(
+	[Parameter(Mandatory = $false)]
+	[Switch]$ConfirmAll
+)
+
 # Default preset
 $tweaks = @(
 	### Require administrator privileges ###
@@ -29,7 +35,7 @@ $tweaks = @(
 	"CreateRestorePoint",
 
 	### Chris Titus Tech Additions
-	# "TitusRegistryTweaks",
+	"TitusRegistryTweaks",
 	"InstallTitusProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	"Install7Zip",
 	"InstallNotepadplusplus",
@@ -41,7 +47,8 @@ $tweaks = @(
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
 	"GriffinRegistryTweaks",
-	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
+	"CreateJunctionsFromProgramFiles", # Intended for use with smaller SSD as C:\ and larger HDD as D:\
+	"InstallGriffinProgs" #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	# "InstallPowerShellPackageManagement",
 	"InstallPowerline",
 	"InstallIconExportPowerShell",
@@ -76,7 +83,7 @@ $tweaks = @(
 	# "EnableSharingMappedDrives",  # "DisableSharingMappedDrives",
 	# "DisableAdminShares",           # "EnableAdminShares",
 	"DisableSMB1", # "EnableSMB1",
-	"DisableSMBServer", # "EnableSMBServer",
+	# "DisableSMBServer",           # "EnableSMBServer",
 	# "DisableLLMNR",               # "EnableLLMNR",
 	"SetCurrentNetworkPrivate", # "SetCurrentNetworkPublic",
 	"SetUnknownNetworksPrivate", # "SetUnknownNetworksPublic",
@@ -164,7 +171,7 @@ $tweaks = @(
 	# "DisableThumbsDB",              # "EnableThumbsDB",
 
 	### Application Tweaks ###
-	"EnableOneDrive",
+	# "EnableOneDrive",
 	# "UninstallMsftBloat", # "InstallMsftBloat",
 	"UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
 	# "UninstallWindowsStore",      # "InstallWindowsStore",
@@ -174,7 +181,7 @@ $tweaks = @(
 	# "UninstallInternetExplorer", # "InstallInternetExplorer",
 	# "UninstallWorkFolders", # "InstallWorkFolders",
 	"InstallLinuxSubsystem", # "UninstallLinuxSubsystem",
-	"InstallHyperV", # "UninstallHyperV",
+	# "InstallHyperV", # "UninstallHyperV",
 	"SetPhotoViewerAssociation", # "UnsetPhotoViewerAssociation",
 	"AddPhotoViewerOpenWith", # "RemovePhotoViewerOpenWith",
 	"InstallPDFPrinter", # "UninstallPDFPrinter",
@@ -215,17 +222,17 @@ function Show-Choco-Menu {
 		Clear-Host
 		Write-Host "================ $Title ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "2: Press 'N' to skip this."
+		Write-Host "N: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		if ($ConfirmAll) { $selection = 'y' }
+		else { $selection = Read-Host "Please make a selection" }
 		switch ($selection) {
-			'y' { choco install $ChocoInstall -y }
+			'y' { choco install $ChocoInstall -y;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 } }
 			'n' { Break }
 			'q' { Exit }
 		}
 	}
 	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function TitusRegistryTweaks {
@@ -263,20 +270,22 @@ Function InstallBrave {
 		Clear-Host
 		Write-Host "================ Do You Want to Install Brave Browser? ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "2: Press 'N' to skip this."
+		Write-Host "N: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		if ($ConfirmAll) { $selection = 'y' }
+		else { $selection = Read-Host "Please make a selection" }
 		switch ($selection) {
 			'y' {
 				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
+				if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 				~/Downloads/brave.exe
+				if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 			}
 			'n' { Break }
 			'q' { Exit }
 		}
 	}
 	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 Function Install7Zip {
 	Show-Choco-Menu -Title "Do you want to install 7-Zip?" -ChocoInstall "7zip"
@@ -316,6 +325,47 @@ Function GriffinRegistryTweaks {
 	}
 }
 
+Function CreateJunctionsFromProgramFiles {
+	do {
+		Clear-Host
+		Write-Host "================ Do You Want to Create Junctions in 'C:\Program Files' to Custom Install Locations on 'D:\' ? ================"
+		Write-Host "Y: Press 'Y' to do this."
+		Write-Host "N: Press 'N' to skip this."
+		Write-Host "Q: Press 'Q' to stop the entire script."
+		if ($ConfirmAll) { $selection = 'y' }
+		else { $selection = Read-Host "Please make a selection" }
+		switch ($selection) {
+			'y' {
+				Write-Host "Creating Custom Junctions in" $env:ProgramFiles "..."
+				$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
+				$FoldersToJunction = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
+				foreach ($ProgramFiles in $ProgramFilesLocations) {
+					foreach ($FolderName in $FoldersToJunction) {
+						$JunctionPath = $ProgramFiles + "\" + $FolderName
+						$JunctionTarget = "D:\" + $FolderName
+						If (-Not(Test-Path $JunctionTarget)) {
+							New-Item -Type Directory -Path "$JunctionTarget"
+						}
+						New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -ErrorAction Continue
+					}
+				}
+				Write-Host "Creating Custom Junctions in" $env:APPDATA "..."
+				foreach ($FolderName in @("Citra", ".minecraft")) {
+					$JunctionPath = $env:APPDATA + "\" + $FolderName
+					$JunctionTarget = "D:\" + $FolderName
+					If (-Not(Test-Path $JunctionTarget)) {
+						New-Item -Type Directory -Path "$JunctionTarget"
+					}
+					New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -ErrorAction Continue
+				}
+			}
+			'n' { Break }
+			'q' { Exit }
+		}
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+}
+
 Function InstallPresetFromJson {
 	param(
 		[Parameter(Mandatory)]
@@ -331,62 +381,38 @@ Function InstallPresetFromJson {
 	}
 	# Initialize the array with some default packages
 	$ChocoPackageArray = New-Object System.Collections.ArrayList
-	# Read the chocolatey packages from presets.json
-	foreach ($Category in $PresetPackages.chocolatey) {
+	# Read the default packages from presets.json
+	foreach ($Category in $PresetPackages.default) {
 		foreach ($PackageName in $Category.packages) {
 			$Package = New-Object System.Object
 			$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
 			$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-			$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Chocolatey"
+			$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Default"
 			$ChocoPackageArray.Add($Package) | Out-Null
 		}
 	}
-	if ($PresetNumber -eq 1 -or $PresetNumber -eq 3) {
-		# Read the OpenSSH packages from presets.json
-		foreach ($Category in $PresetPackages.openSSH) {
-			foreach ($PackageName in $Category.packages) {
-				$Package = New-Object System.Object
-				$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-				$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-				$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "OpenSSH"
-				$ChocoPackageArray.Add($Package) | Out-Null
-			}
-		}
-	}
-	if ($PresetNumber -gt 1) {
-		# Read the default packages from presets.json
-		foreach ($Category in $PresetPackages.default) {
-			foreach ($PackageName in $Category.packages) {
-				$Package = New-Object System.Object
-				$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-				$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-				$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Default"
-				$ChocoPackageArray.Add($Package) | Out-Null
-			}
-		}
-		switch ($PresetNumber) {
-			3 {
-				# Read the desktop  packages from presets.json
-				foreach ($Category in $PresetPackages.desktop) {
-					foreach ($PackageName in $Category.packages) {
-						$Package = New-Object System.Object
-						$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-						$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-						$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Desktop"
-						$ChocoPackageArray.Add($Package) | Out-Null
-					}
+	switch ($PresetNumber) {
+		2 {
+			# Read the desktop  packages from presets.json
+			foreach ($Category in $PresetPackages.desktop) {
+				foreach ($PackageName in $Category.packages) {
+					$Package = New-Object System.Object
+					$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+					$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+					$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Desktop"
+					$ChocoPackageArray.Add($Package) | Out-Null
 				}
 			}
-			default {
-				# Read the laptop  packages from presets.json
-				foreach ($Category in $PresetPackages.laptop) {
-					foreach ($PackageName in $Category.packages) {
-						$Package = New-Object System.Object
-						$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-						$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-						$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Laptop"
-						$ChocoPackageArray.Add($Package) | Out-Null
-					}
+		}
+		default {
+			# Read the laptop  packages from presets.json
+			foreach ($Category in $PresetPackages.laptop) {
+				foreach ($PackageName in $Category.packages) {
+					$Package = New-Object System.Object
+					$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
+					$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
+					$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Laptop"
+					$ChocoPackageArray.Add($Package) | Out-Null
 				}
 			}
 		}
@@ -404,21 +430,24 @@ Function InstallPresetFromJson {
 		Write-Host "Y: Press 'Y' to do this."
 		Write-Host "N: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		if ($ConfirmAll) { $selection = 'y' }
+		else { $selection = Read-Host "Please make a selection" }
 		switch ($selection) {
 			'y' {
 				Write-Host "Beginning install..." -ForegroundColor Green
 				foreach ($Package in $ChocoPackageArray) {
-					Write-Host "Installing "$Package.PackageName""
-					choco install $Package.PackageName -y --limit-output
+					Clear-Host
+					Write-Host "================ Installing "$Package.PackageName" ================" -ForegroundColor Yellow
+					choco install $Package.PackageName -y
+					if ($LASTEXITCODE) {
+						Start-Sleep -Seconds 4
+					}
 				}
 				refreshenv
-				if ($PresetNumber -gt 1) {
-					Write-Host 'Installing Node.js and npm '
-					nvm install -lts
-					nvm install 9.11.1
-					if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				}
+				Clear-Host
+				Write-Host '================ Installing Node.js and npm ================'
+				nvm install -lts;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
+				nvm install 9.11.1;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 			}
 			'd' {
 				# Debug Mode
@@ -437,104 +466,98 @@ Function InstallPresetFromJson {
 }
 
 function Show-Json-Menu {
-	param(
-		[Parameter(Mandatory)]
-		[ValidateNotNullOrEmpty()]
-		[string]$LogPath
-	)
-
 	do {
 		Clear-Host
-		Write-Host "================ Select Preset to load from JSON ================" | Tee-Object -FilePath $LogPath -Append
-		Write-Host "0: Detect automatically (default)" | Tee-Object -FilePath $LogPath -Append
-		Write-Host "1: OpenSSH Server" | Tee-Object -FilePath $LogPath -Append
-		Write-Host "2: Laptop Preset" | Tee-Object -FilePath $LogPath -Append
-		Write-Host "3: Desktop Preset" | Tee-Object -FilePath $LogPath -Append
-		Write-Host | Tee-Object -FilePath $LogPath -Append
-		Write-Host "N: Press 'N' to skip this." | Tee-Object -FilePath $LogPath -Append
-		Write-Host "Q: Press 'Q' to stop the entire script." | Tee-Object -FilePath $LogPath -Append
-		$selection = Read-Host "Please make a selection"
+		Write-Host "================ Select Preset to load from JSON ================"
+		Write-Host "0: Detect automatically (default)"
+		Write-Host "1: Laptop Preset"
+		Write-Host "2: Desktop Preset"
+		Write-Host
+		Write-Host "N: Press 'N' to skip this."
+		Write-Host "Q: Press 'Q' to stop the entire script."
+		if ($ConfirmAll) { $selection = 'y' }
+		else { $selection = Read-Host "Please make a selection" }
 		switch ($selection) {
-			1 {	Write-Host "Installing OpenSSH Server " | Tee-Object -FilePath $LogPath -Append }
-			2 {	Write-Host "Installing Laptop preset." | Tee-Object -FilePath $LogPath -Append }
-			3 {	Write-Host "Installing Desktop preset." | Tee-Object -FilePath $LogPath -Append }
+			0 {
+				# Attempt to detect computer by checking the computer name
+				if ($env:COMPUTERNAME -match "DESKTOP") { $selection = 3 }
+				else {	$selection = 2 }
+			}
+			1 {	Write-Host "Installing Laptop preset." }
+			2 {	Write-Host "Installing Desktop preset." }
 			'n' { Break }
 			'q' { Exit }
-			default {
-				# Attempt to detect computer by checking the computer name
-				switch ($env:COMPUTERNAME) {
-					"DESKTOP-GRIFFIN" {	$selection = 3 }
-					default {	$selection = 2 }
-				}
-			}
 		}
 	}
-	until (($selection -ge 0 -and $selection -le 3) -or $selection -match "n" -or $selection -match "q")
-	if ($selection -ge 0 -and $selection -le 3) {
-		try { InstallPresetFromJson -PresetNumber $selection | Tee-Object -FilePath $LogPath -Append }
-		catch { InstallPresetFromJson -PresetNumber $selection }
-	}
+	until (($selection -ge 0 -and $selection -le 2) -or $selection -match "n" -or $selection -match "q")
+	if ($selection -ge 0 -and $selection -le 2) { InstallPresetFromJson -PresetNumber $selection }
 }
 
 Function InstallGriffinProgs {
-	$LogPath = $PSScriptRoot + "\InstallPresetFromJson.log"
-	Show-Json-Menu -Title "Select Preset to load from JSON" -LogPath $LogPath | Tee-Object -FilePath $LogPath -Append
+	Show-Json-Menu -Title "Select Preset to load from JSON"
 }
 
 Function InstallPowerShellPackageManagement {
 	powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 }
 
 Function InstallPowerline {
 	Clear-Host
 	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
-	Install-Module posh-git -Scope CurrentUser -Force
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-	Install-Module oh-my-posh -Scope CurrentUser -Force
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-	refreshenv
+	Install-Module posh-git -Scope CurrentUser -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
+	Install-Module oh-my-posh -Scope CurrentUser -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 	Write-Host "Installing PSReadLine -- [Dependency for Powerline and allows bash-like terminal features"
-	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-	refreshenv
+	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 	Write-Host "Copying custom powershell profile..."
 	$BackupPowerShellProfilePath = $PSScriptRoot + "\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
 	if (Test-Path "$BackupPowerShellProfilePath") {
-		Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts"
+		Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts";	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 	}
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function InstallIconExportPowerShell {
 	Clear-Host
 	Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
-	Install-Module IconExport -Force
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+	Install-Module IconExport -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 }
 
 Function CustomWindowsTerminalSettings {
 	Clear-Host
 	# Copy over my custom Windows Terminal settings
 	$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-	$WindowsTerminalLocalSettingsPath = "C:\Users\NerdyGriffin\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+	$WindowsTerminalLocalSettingsPath = """$env:LOCALAPPDATA""\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 	if (Test-Path "$WindowsTerminalBackupSettingsPath") {
 		Write-Host "Copying custom Windows Terminal config..."
-		Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath"
-		if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+		Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath";	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 	}
 }
 
 Function SchedulePowerShellUpdateHelp {
-	Write-Host 'Creating a scheduled job that runs an `Update-Help` command.'
-	$jobParams = @{
-		Name        = 'UpdateHelpJob'
-		Credential  = 'Domain01\User01'
-		ScriptBlock = '{Update-Help}'
-		Trigger     = (New-JobTrigger -Daily -At "3 AM")
+	try {
+		Get-ScheduledJob UpdateHelpJob
+	} catch {
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Schedule a Job That Runs an `Update-Help` Command? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			if ($ConfirmAll) { $selection = 'y' }
+			else { $selection = Read-Host "Please make a selection" }
+			switch ($selection) {
+				'y' {
+					Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
+					$Trigger = New-JobTrigger -Daily -At "3 AM"
+					Register-ScheduledJob -Name "UpdateHelpJob" -ScriptBlock { Update-Help } -Trigger $Trigger
+					Start-Sleep -Seconds 4
+				}
+				'n' { Break }
+				'q' { Exit }
+			}
+		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 	}
-	Register-ScheduledJob @jobParams
-	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
 }
 
 Function InstallOpenSSHServer {
@@ -544,40 +567,51 @@ Function InstallOpenSSHServer {
 		Write-Host "Y: Press 'Y' to do this."
 		Write-Host "N: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		if ($ConfirmAll) { $selection = 'y' }
+		else { $selection = Read-Host "Please make a selection" }
 		switch ($selection) {
 			'y' {
-				Write-Host 'Installing OpenSSH Client & OpenSSH Server...' -ForegroundColor Green
+				Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
 				# Install the OpenSSH Client
 				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
-				if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
+				Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
 				# Install the OpenSSH Server
 				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
-				if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				refreshenv
-				Start-Service sshd;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				Start-Service ssh-agent;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				# OPTIONAL but recommended:
-				Set-Service sshd -StartupType Automatic;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				Set-Service ssh-agent -StartupType Automatic;	if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				refreshenv
+				Write-Host 'Starting sshd service' -ForegroundColor Cyan
+				Start-Service sshd;
+				Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
+				Start-Service ssh-agent;
+				Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
+				Set-Service sshd -StartupType Automatic;
+				Set-Service ssh-agent -StartupType Automatic;
 				# Confirm the Firewall rule is configured. It should be created automatically by setup.
-				Get-NetFirewallRule -Name *ssh*
+				Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
+				$FirewallRules = Get-NetFirewallRule -Name *ssh*
 				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
 				# If the firewall does not exist, create one
-				New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
-				# if ($LASTEXITCODE) { Invoke-Expression WaitForKey }
-				refreshenv
-				# Make sure you're running as an Administrator
-				Start-Service ssh-agent
+				if (-Not($FirewallRules -match "OpenSSH-Server-In-TCP")) {
+					Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
+					New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
+				}
+				Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
 				# This should return a status of Running
 				Get-Service ssh-agent
-				# Now load your key files into ssh-agent
-				ssh-add C:\Users\NerdyGriffin\.ssh\id_rsa
+				$SSHAgentServiceStatus = Get-Service ssh-agent
+				if (-Not($SSHAgentServiceStatus -match "Running")) {
+					Start-Service ssh-agent
+				}
+				if ($SSHAgentServiceStatus -match "Running") {
+					# Now load your key files into ssh-agent
+					Write-Host "Attempting to load your key file into ssh-agent" -ForegroundColor Yellow
+					ssh-add $env:USERPROFILE\.ssh\id_rsa
+				}
 				# Set the default shell to be PowerShell.exe
+				Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
 				New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
-				refreshenv
-				Write-Host "OpenSSH installation is now be complete" -ForegroundColor Green
+				Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
+				choco install ssh-copy-id -y
+				Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
+				Start-Sleep -Seconds 4
 			}
 			'n' { Break }
 			'q' { Exit }
@@ -760,7 +794,7 @@ Function DisableLocationTracking {
 		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Force | Out-Null
 	}
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Type String -Value "Deny"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}" -Name "SensorPermissionState" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\ { BFA794E4-F964-4FDB-90F6-51056BFE4B44 }" -Name "SensorPermissionState" -Type DWord -Value 0
 	Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\lfsvc\Service\Configuration" -Name "Status" -Type DWord -Value 0
 }
 
@@ -771,7 +805,7 @@ Function EnableLocationTracking {
 		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Force | Out-Null
 	}
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Type String -Value "Allow"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}" -Name "SensorPermissionState" -Type DWord -Value 1
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\ { BFA794E4-F964-4FDB-90F6-51056BFE4B44 }" -Name "SensorPermissionState" -Type DWord -Value 1
 	Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\lfsvc\Service\Configuration" -Name "Status" -Type DWord -Value 1
 }
 
@@ -1950,18 +1984,18 @@ Function ShowThisPCOnDesktop {
 	If (!(Test-Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu")) {
 		New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name " { 20D04FE0-3AEA-1069-A2D8-08002B30309D }" -Type DWord -Value 0
 	If (!(Test-Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel")) {
 		New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name " { 20D04FE0-3AEA-1069-A2D8-08002B30309D }" -Type DWord -Value 0
 }
 
 # Hide This PC shortcut from desktop
 Function HideThisPCFromDesktop {
 	Write-Output "Hiding This PC shortcut from desktop..."
-	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -ErrorAction SilentlyContinue
-	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -ErrorAction SilentlyContinue
+	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name " { 20D04FE0-3AEA-1069-A2D8-08002B30309D }" -ErrorAction SilentlyContinue
+	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name " { 20D04FE0-3AEA-1069-A2D8-08002B30309D }" -ErrorAction SilentlyContinue
 }
 
 # Show User Folder shortcut on desktop
@@ -1970,240 +2004,240 @@ Function ShowUserFolderOnDesktop {
 	If (!(Test-Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu")) {
 		New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name "{59031a47-3f72-44a7-89c5-5595fe6b30ee}" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name " { 59031a47-3f72-44a7-89c5-5595fe6b30ee }" -Type DWord -Value 0
 	If (!(Test-Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel")) {
 		New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name "{59031a47-3f72-44a7-89c5-5595fe6b30ee}" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name " { 59031a47-3f72-44a7-89c5-5595fe6b30ee }" -Type DWord -Value 0
 }
 
 # Hide User Folder shortcut from desktop
 Function HideUserFolderFromDesktop {
 	Write-Output "Hiding User Folder shortcut from desktop..."
-	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name "{59031a47-3f72-44a7-89c5-5595fe6b30ee}" -ErrorAction SilentlyContinue
-	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name "{59031a47-3f72-44a7-89c5-5595fe6b30ee}" -ErrorAction SilentlyContinue
+	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" -Name " { 59031a47-3f72-44a7-89c5-5595fe6b30ee }" -ErrorAction SilentlyContinue
+	Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name " { 59031a47-3f72-44a7-89c5-5595fe6b30ee }" -ErrorAction SilentlyContinue
 }
 
 # Hide Desktop icon from This PC - The icon remains in personal folders and open/save dialogs
 Function HideDesktopFromThisPC {
 	Write-Output "Hiding Desktop icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show Desktop icon in This PC
 Function ShowDesktopInThisPC {
 	Write-Output "Showing Desktop icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }" | Out-Null
 	}
 }
 
 # Hide Desktop icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function HideDesktopFromExplorer {
 	Write-Output "Hiding Desktop icon from Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show Desktop icon in Explorer namespace
 Function ShowDesktopInExplorer {
 	Write-Output "Showing Desktop icon in Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { B4BFCC3A-DB2C-424C-B029-7FE99A87C641 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
 }
 
 # Hide Documents icon from This PC - The icon remains in personal folders and open/save dialogs
 Function HideDocumentsFromThisPC {
 	Write-Output "Hiding Documents icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" -Recurse -ErrorAction SilentlyContinue
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A8CDFF1C-4878-43be-B5FD-F8091C1C60D0}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { d3162b92-9365-467a-956b-92703aca08af }" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { A8CDFF1C-4878-43be-B5FD-F8091C1C60D0 }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show Documents icon in This PC
 Function ShowDocumentsInThisPC {
 	Write-Output "Showing Documents icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { d3162b92-9365-467a-956b-92703aca08af }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { d3162b92-9365-467a-956b-92703aca08af }" | Out-Null
 	}
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A8CDFF1C-4878-43be-B5FD-F8091C1C60D0}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A8CDFF1C-4878-43be-B5FD-F8091C1C60D0}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { A8CDFF1C-4878-43be-B5FD-F8091C1C60D0 }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { A8CDFF1C-4878-43be-B5FD-F8091C1C60D0 }" | Out-Null
 	}
 }
 
 # Hide Documents icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function HideDocumentsFromExplorer {
 	Write-Output "Hiding Documents icon from Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { f42ee2d3-909f-4907-8871-4c22fc0bf756 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { f42ee2d3-909f-4907-8871-4c22fc0bf756 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show Documents icon in Explorer namespace
 Function ShowDocumentsInExplorer {
 	Write-Output "Showing Documents icon in Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { f42ee2d3-909f-4907-8871-4c22fc0bf756 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { f42ee2d3-909f-4907-8871-4c22fc0bf756 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
 }
 
 # Hide Downloads icon from This PC - The icon remains in personal folders and open/save dialogs
 Function HideDownloadsFromThisPC {
 	Write-Output "Hiding Downloads icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" -Recurse -ErrorAction SilentlyContinue
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{374DE290-123F-4565-9164-39C4925E467B}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 088e3905 - 0323 - 4b02-9826-5d99428e115f }" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 374DE290-123F-4565-9164-39C4925E467B }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show Downloads icon in This PC
 Function ShowDownloadsInThisPC {
 	Write-Output "Showing Downloads icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 088e3905 - 0323 - 4b02-9826-5d99428e115f }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 088e3905 - 0323 - 4b02-9826-5d99428e115f }" | Out-Null
 	}
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{374DE290-123F-4565-9164-39C4925E467B}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{374DE290-123F-4565-9164-39C4925E467B}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 374DE290-123F-4565-9164-39C4925E467B }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 374DE290-123F-4565-9164-39C4925E467B }" | Out-Null
 	}
 }
 
 # Hide Downloads icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function HideDownloadsFromExplorer {
 	Write-Output "Hiding Downloads icon from Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 7d83ee9b-2244-4e70-b1f5-5393042af1e4 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 7d83ee9b-2244-4e70-b1f5-5393042af1e4 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show Downloads icon in Explorer namespace
 Function ShowDownloadsInExplorer {
 	Write-Output "Showing Downloads icon in Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 7d83ee9b-2244-4e70-b1f5-5393042af1e4 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 7d83ee9b-2244-4e70-b1f5-5393042af1e4 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
 }
 
 # Hide Music icon from This PC - The icon remains in personal folders and open/save dialogs
 Function HideMusicFromThisPC {
 	Write-Output "Hiding Music icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" -Recurse -ErrorAction SilentlyContinue
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{1CF1260C-4DD0-4ebb-811F-33C572699FDE}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 3dfdf296-dbec-4fb4-81d1-6a3438bcf4de }" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 1CF1260C-4DD0-4ebb-811F-33C572699FDE }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show Music icon in This PC
 Function ShowMusicInThisPC {
 	Write-Output "Showing Music icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 3dfdf296-dbec-4fb4-81d1-6a3438bcf4de }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 3dfdf296-dbec-4fb4-81d1-6a3438bcf4de }" | Out-Null
 	}
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{1CF1260C-4DD0-4ebb-811F-33C572699FDE}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{1CF1260C-4DD0-4ebb-811F-33C572699FDE}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 1CF1260C-4DD0-4ebb-811F-33C572699FDE }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 1CF1260C-4DD0-4ebb-811F-33C572699FDE }" | Out-Null
 	}
 }
 
 # Hide Music icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function HideMusicFromExplorer {
 	Write-Output "Hiding Music icon from Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { a0c69a99-21c8-4671-8703-7934162fcf1d }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { a0c69a99-21c8-4671-8703-7934162fcf1d }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show Music icon in Explorer namespace
 Function ShowMusicInExplorer {
 	Write-Output "Showing Music icon in Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { a0c69a99-21c8-4671-8703-7934162fcf1d }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { a0c69a99-21c8-4671-8703-7934162fcf1d }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
 }
 
 # Hide Pictures icon from This PC - The icon remains in personal folders and open/save dialogs
 Function HidePicturesFromThisPC {
 	Write-Output "Hiding Pictures icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" -Recurse -ErrorAction SilentlyContinue
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 24ad3ad4-a569-4530-98e1-ab02f9417aa8 }" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show Pictures icon in This PC
 Function ShowPicturesInThisPC {
 	Write-Output "Showing Pictures icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 24ad3ad4-a569-4530-98e1-ab02f9417aa8 }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 24ad3ad4-a569-4530-98e1-ab02f9417aa8 }" | Out-Null
 	}
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA }" | Out-Null
 	}
 }
 
 # Hide Pictures icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function HidePicturesFromExplorer {
 	Write-Output "Hiding Pictures icon from Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 0ddd015d-b06c-45d5-8c4c-f59713854639 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 0ddd015d-b06c-45d5-8c4c-f59713854639 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show Pictures icon in Explorer namespace
 Function ShowPicturesInExplorer {
 	Write-Output "Showing Pictures icon in Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 0ddd015d-b06c-45d5-8c4c-f59713854639 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 0ddd015d-b06c-45d5-8c4c-f59713854639 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
 }
 
 # Hide Videos icon from This PC - The icon remains in personal folders and open/save dialogs
 Function HideVideosFromThisPC {
 	Write-Output "Hiding Videos icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" -Recurse -ErrorAction SilentlyContinue
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A0953C92-50DC-43bf-BE83-3742FED03C9C}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a }" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { A0953C92-50DC-43bf-BE83-3742FED03C9C }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show Videos icon in This PC
 Function ShowVideosInThisPC {
 	Write-Output "Showing Videos icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a }" | Out-Null
 	}
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A0953C92-50DC-43bf-BE83-3742FED03C9C}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A0953C92-50DC-43bf-BE83-3742FED03C9C}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { A0953C92-50DC-43bf-BE83-3742FED03C9C }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { A0953C92-50DC-43bf-BE83-3742FED03C9C }" | Out-Null
 	}
 }
 
 # Hide Videos icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function HideVideosFromExplorer {
 	Write-Output "Hiding Videos icon from Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 35286a68-3c57-41a1-bbb1-0eae73d76c95 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 35286a68-3c57-41a1-bbb1-0eae73d76c95 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show Videos icon in Explorer namespace
 Function ShowVideosInExplorer {
 	Write-Output "Showing Videos icon in Explorer namespace..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 35286a68-3c57-41a1-bbb1-0eae73d76c95 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 35286a68-3c57-41a1-bbb1-0eae73d76c95 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Show"
 }
 
 # Hide 3D Objects icon from This PC - The icon remains in personal folders and open/save dialogs
 Function Hide3DObjectsFromThisPC {
 	Write-Output "Hiding 3D Objects icon from This PC..."
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 0DB7E03F-FC29-4DC6-9020-FF41B59E513A }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Show 3D Objects icon in This PC
 Function Show3DObjectsInThisPC {
 	Write-Output "Showing 3D Objects icon in This PC..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}" | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 0DB7E03F-FC29-4DC6-9020-FF41B59E513A }")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\ { 0DB7E03F-FC29-4DC6-9020-FF41B59E513A }" | Out-Null
 	}
 }
 
 # Hide 3D Objects icon from Explorer namespace - Hides the icon also from personal folders and open/save dialogs
 Function Hide3DObjectsFromExplorer {
 	Write-Output "Hiding 3D Objects icon from Explorer namespace..."
-	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag")) {
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag" -Force | Out-Null
+	If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag")) {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
-	If (!(Test-Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag")) {
-		New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag" -Force | Out-Null
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	If (!(Test-Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag")) {
+		New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag" -Name "ThisPCPolicy" -Type String -Value "Hide"
 }
 
 # Show 3D Objects icon in Explorer namespace
 Function Show3DObjectsInExplorer {
 	Write-Output "Showing 3D Objects icon in Explorer namespace..."
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag" -Name "ThisPCPolicy" -ErrorAction SilentlyContinue
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag" -Name "ThisPCPolicy" -ErrorAction SilentlyContinue
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag" -Name "ThisPCPolicy" -ErrorAction SilentlyContinue
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\ { 31C0DD25-9439-4F12-BF41-7FF4EDA38722 }\PropertyBag" -Name "ThisPCPolicy" -ErrorAction SilentlyContinue
 }
 
 # Disable thumbnails, show only file extension icons
@@ -2273,8 +2307,8 @@ Function UninstallOneDrive {
 	If (!(Test-Path "HKCR:")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
-	Remove-Item -Path "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" -Recurse -ErrorAction SilentlyContinue
-	Remove-Item -Path "HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKCR:\CLSID\ { 018D5C66-4533-4307-9B53-224DE2ED1FE6 }" -Recurse -ErrorAction SilentlyContinue
+	Remove-Item -Path "HKCR:\Wow6432Node\CLSID\ { 018D5C66-4533-4307-9B53-224DE2ED1FE6 }" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Install OneDrive - Not applicable to Server
@@ -2588,7 +2622,7 @@ Function SetPhotoViewerAssociation {
 	ForEach ($type in @("Paint.Picture", "giffile", "jpegfile", "pngfile")) {
 		New-Item -Path $("HKCR:\$type\shell\open") -Force | Out-Null
 		New-Item -Path $("HKCR:\$type\shell\open\command") | Out-Null
-		Set-ItemProperty -Path $("HKCR:\$type\shell\open") -Name "MuiVerb" -Type ExpandString -Value "@%ProgramFiles%\Windows Photo Viewer\photoviewer.dll,-3043"
+		Set-ItemProperty -Path $("HKCR:\$type\shell\open") -Name "MuiVerb" -Type ExpandString -Value "@%ProgramFiles%\Windows Photo Viewer\photoviewer.dll, -3043"
 		Set-ItemProperty -Path $("HKCR:\$type\shell\open\command") -Name "(Default)" -Type ExpandString -Value "%SystemRoot%\System32\rundll32.exe `"%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll`", ImageView_Fullscreen %1"
 	}
 }
@@ -2603,7 +2637,7 @@ Function UnsetPhotoViewerAssociation {
 	Remove-ItemProperty -Path "HKCR:\giffile\shell\open" -Name "MuiVerb" -ErrorAction SilentlyContinue
 	Set-ItemProperty -Path "HKCR:\giffile\shell\open" -Name "CommandId" -Type String -Value "IE.File"
 	Set-ItemProperty -Path "HKCR:\giffile\shell\open\command" -Name "(Default)" -Type String -Value "`"$env:SystemDrive\Program Files\Internet Explorer\iexplore.exe`" %1"
-	Set-ItemProperty -Path "HKCR:\giffile\shell\open\command" -Name "DelegateExecute" -Type String -Value "{17FE9752-0B5A-4665-84CD-569794602F5C}"
+	Set-ItemProperty -Path "HKCR:\giffile\shell\open\command" -Name "DelegateExecute" -Type String -Value " { 17FE9752-0B5A-4665-84CD-569794602F5C }"
 	Remove-Item -Path "HKCR:\jpegfile\shell\open" -Recurse -ErrorAction SilentlyContinue
 	Remove-Item -Path "HKCR:\pngfile\shell\open" -Recurse -ErrorAction SilentlyContinue
 }
@@ -2616,9 +2650,9 @@ Function AddPhotoViewerOpenWith {
 	}
 	New-Item -Path "HKCR:\Applications\photoviewer.dll\shell\open\command" -Force | Out-Null
 	New-Item -Path "HKCR:\Applications\photoviewer.dll\shell\open\DropTarget" -Force | Out-Null
-	Set-ItemProperty -Path "HKCR:\Applications\photoviewer.dll\shell\open" -Name "MuiVerb" -Type String -Value "@photoviewer.dll,-3043"
+	Set-ItemProperty -Path "HKCR:\Applications\photoviewer.dll\shell\open" -Name "MuiVerb" -Type String -Value "@photoviewer.dll, -3043"
 	Set-ItemProperty -Path "HKCR:\Applications\photoviewer.dll\shell\open\command" -Name "(Default)" -Type ExpandString -Value "%SystemRoot%\System32\rundll32.exe `"%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll`", ImageView_Fullscreen %1"
-	Set-ItemProperty -Path "HKCR:\Applications\photoviewer.dll\shell\open\DropTarget" -Name "Clsid" -Type String -Value "{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}"
+	Set-ItemProperty -Path "HKCR:\Applications\photoviewer.dll\shell\open\DropTarget" -Name "Clsid" -Type String -Value " { FFE2A43C-56B9-4bf5-9A79-CC6D4285608A }"
 }
 
 # Remove Photo Viewer from "Open with..."
@@ -2737,15 +2771,15 @@ Function EnableCtrlAltDelLogin {
 # Disable Internet Explorer Enhanced Security Configuration (IE ESC)
 Function DisableIEEnhancedSecurity {
 	Write-Output "Disabling Internet Explorer Enhanced Security Configuration (IE ESC)..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Type DWord -Value 0
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\ { A509B1A7-37EF-4b3f-8CFC-4F3A74704073 }" -Name "IsInstalled" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\ { A509B1A8-37EF-4b3f-8CFC-4F3A74704073 }" -Name "IsInstalled" -Type DWord -Value 0
 }
 
 # Enable Internet Explorer Enhanced Security Configuration (IE ESC)
 Function EnableIEEnhancedSecurity {
 	Write-Output "Enabling Internet Explorer Enhanced Security Configuration (IE ESC)..."
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Type DWord -Value 1
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Type DWord -Value 1
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\ { A509B1A7-37EF-4b3f-8CFC-4F3A74704073 }" -Name "IsInstalled" -Type DWord -Value 1
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\ { A509B1A8-37EF-4b3f-8CFC-4F3A74704073 }" -Name "IsInstalled" -Type DWord -Value 1
 }
 
 # Enable Audio
@@ -2773,9 +2807,9 @@ Function UnpinStartMenuTiles {
 	Write-Output "Unpinning all Start Menu tiles..."
 	If ([System.Environment]::OSVersion.Version.Build -ge 15063 -And [System.Environment]::OSVersion.Version.Build -le 16299) {
 		Get-ChildItem -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount" -Include "*.group" -Recurse | ForEach-Object {
-			$data = (Get-ItemProperty -Path "$($_.PsPath)\Current" -Name "Data").Data -Join ","
-			$data = $data.Substring(0, $data.IndexOf(",0,202,30") + 9) + ",0,202,80,0,0"
-			Set-ItemProperty -Path "$($_.PsPath)\Current" -Name "Data" -Type Binary -Value $data.Split(",")
+			$data = (Get-ItemProperty -Path "$($_.PsPath)\Current" -Name "Data").Data -Join ", "
+			$data = $data.Substring(0, $data.IndexOf(", 0, 202, 30") + 9) + ", 0, 202, 80, 0, 0"
+			Set-ItemProperty -Path "$($_.PsPath)\Current" -Name "Data" -Type Binary -Value $data.Split(", ")
 		}
 	} ElseIf ([System.Environment]::OSVersion.Version.Build -eq 17133) {
 		$key = Get-ChildItem -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount" -Recurse | Where-Object { $_ -like "*start.tilegrid`$windows.data.curatedtilecollection.tilecollection\Current" }
