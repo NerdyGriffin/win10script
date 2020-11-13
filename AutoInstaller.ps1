@@ -97,7 +97,7 @@ $tweaks = @(
 	# "EnableCIMemoryIntegrity",    # "DisableCIMemoryIntegrity",
 	#"DisableScriptHost",            # "EnableScriptHost",
 	#"EnableDotNetStrongCrypto",     # "DisableDotNetStrongCrypto",
-	# "DisableMeltdownCompatFlag", # "EnableMeltdownCompatFlag"
+	"DisableMeltdownCompatFlag", # "EnableMeltdownCompatFlag"
 
 	### Service Tweaks ###
 	# "DisableUpdateMSRT", # "EnableUpdateMSRT",
@@ -114,7 +114,7 @@ $tweaks = @(
 	"DisableSuperfetch", # "EnableSuperfetch",
 	"EnableIndexing",
 	"SetBIOSTimeUTC", # "SetBIOSTimeLocal",
-	"EnableHibernation", # "DisableHibernation",
+	"EnableHibernation", # "DisableHibernation",          #
 	"EnableSleepButton", # "DisableSleepButton",
 	"DisableSleepTimeout", # "EnableSleepTimeout",
 	"DisableFastStartup", # "EnableFastStartup",
@@ -136,8 +136,8 @@ $tweaks = @(
 	"SetTaskbarCombineNever", # "SetTaskbarCombineWhenFull",    # "SetTaskbarCombineAlways",
 	"HideTaskbarPeopleIcon", # "ShowTaskbarPeopleIcon",
 	# "ShowTrayIcons", # "HideTrayIcons",
-	"DisableSearchAppInStore", # "EnableSearchAppInStore",
-	"DisableNewAppPrompt", # "EnableNewAppPrompt",
+	# "DisableSearchAppInStore", # "EnableSearchAppInStore",
+	# "DisableNewAppPrompt", # "EnableNewAppPrompt",
 	# "SetControlPanelSmallIcons",  # "SetControlPanelLargeIcons",  # "SetControlPanelCategories",
 	"SetVisualFXAppearance", # "SetVisualFXPerformance",
 	# "AddENKeyboard",              # "RemoveENKeyboard",
@@ -181,7 +181,7 @@ $tweaks = @(
 	# "UninstallInternetExplorer", # "InstallInternetExplorer",
 	# "UninstallWorkFolders", # "InstallWorkFolders",
 	"InstallLinuxSubsystem", # "UninstallLinuxSubsystem",
-	# "InstallHyperV", # "UninstallHyperV",
+	# "InstallHyperV",              # "UninstallHyperV",
 	"SetPhotoViewerAssociation", # "UnsetPhotoViewerAssociation",
 	"AddPhotoViewerOpenWith", # "RemovePhotoViewerOpenWith",
 	"InstallPDFPrinter", # "UninstallPDFPrinter",
