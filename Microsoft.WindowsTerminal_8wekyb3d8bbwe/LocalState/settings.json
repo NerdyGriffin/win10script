@@ -71,6 +71,21 @@
                 "useAcrylic": true
             },
             {
+                "name": "zaeed.home",
+                "commandline": "ssh zaeed.home",
+                "icon": "B:\\icons\\store\\centos.png",
+                "hidden": false,
+                // Visual styling
+                "acrylicOpacity": 0.7,
+                "backgroundImage": "B:\\icons\\store\\centos.png",
+                "backgroundImageStretchMode": "uniform",
+                "backgroundImageOpacity": 0.2,
+                // "colorScheme": "Ubuntu",
+                // "cursorColor": "#CFF5DB",
+                "fontFace": "Cascadia Code PL",
+                "useAcrylic": true
+            },
+            {
                 "name": "legion.home",
                 "commandline": "ssh legion.home",
                 "icon": "B:\\icons\\store\\manjaro_green.png",
