@@ -350,7 +350,7 @@ Function CreateJunctionsFromProgramFiles {
 					}
 				}
 				Write-Host "Creating Custom Junctions in" $env:APPDATA "..."
-				foreach ($FolderName in @("Citra", ".minecraft")) {
+				foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
 					$JunctionPath = $env:APPDATA + "\" + $FolderName
 					$JunctionTarget = "D:\" + $FolderName
 					If (-Not(Test-Path $JunctionTarget)) {
@@ -393,7 +393,7 @@ Function InstallPresetFromJson {
 	}
 	switch ($PresetNumber) {
 		2 {
-			# Read the desktop  packages from presets.json
+			# Read the desktop packages from presets.json
 			foreach ($Category in $PresetPackages.desktop) {
 				foreach ($PackageName in $Category.packages) {
 					$Package = New-Object System.Object
@@ -405,7 +405,7 @@ Function InstallPresetFromJson {
 			}
 		}
 		default {
-			# Read the laptop  packages from presets.json
+			# Read the laptop packages from presets.json
 			foreach ($Category in $PresetPackages.laptop) {
 				foreach ($PackageName in $Category.packages) {
 					$Package = New-Object System.Object
@@ -438,16 +438,15 @@ Function InstallPresetFromJson {
 				foreach ($Package in $ChocoPackageArray) {
 					Clear-Host
 					Write-Host "================ Installing "$Package.PackageName" ================" -ForegroundColor Yellow
-					choco install $Package.PackageName -y
+					if ($Package.Category -match "Chocolatey") {
+						choco install $Package.PackageName -y --force
+					} else {
+						choco install $Package.PackageName -y
+					}
 					if ($LASTEXITCODE) {
 						Start-Sleep -Seconds 4
 					}
 				}
-				refreshenv
-				Clear-Host
-				Write-Host '================ Installing Node.js and npm ================'
-				nvm install -lts;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-				nvm install 9.11.1;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 			}
 			'd' {
 				# Debug Mode
@@ -480,8 +479,8 @@ function Show-Json-Menu {
 		switch ($selection) {
 			0 {
 				# Attempt to detect computer by checking the computer name
-				if ($env:COMPUTERNAME -match "DESKTOP") { $selection = 3 }
-				else {	$selection = 2 }
+				if (Get-ComputerName | Select-String "DESKTOP") { $selection = 2 }
+				else {	$selection = 1 }
 			}
 			1 {	Write-Host "Installing Laptop preset." }
 			2 {	Write-Host "Installing Desktop preset." }
@@ -584,26 +583,18 @@ Function InstallOpenSSHServer {
 				Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
 				Set-Service sshd -StartupType Automatic;
 				Set-Service ssh-agent -StartupType Automatic;
-				# Confirm the Firewall rule is configured. It should be created automatically by setup.
 				Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
-				$FirewallRules = Get-NetFirewallRule -Name *ssh*
 				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
 				# If the firewall does not exist, create one
-				if (-Not($FirewallRules -match "OpenSSH-Server-In-TCP")) {
+				if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
 					Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
 					New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
 				}
 				Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
-				# This should return a status of Running
+				This should return a status of Running
 				Get-Service ssh-agent
-				$SSHAgentServiceStatus = Get-Service ssh-agent
-				if (-Not($SSHAgentServiceStatus -match "Running")) {
+				if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
 					Start-Service ssh-agent
-				}
-				if ($SSHAgentServiceStatus -match "Running") {
-					# Now load your key files into ssh-agent
-					Write-Host "Attempting to load your key file into ssh-agent" -ForegroundColor Yellow
-					ssh-add $env:USERPROFILE\.ssh\id_rsa
 				}
 				# Set the default shell to be PowerShell.exe
 				Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
