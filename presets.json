@@ -46,7 +46,6 @@
             "name": "Password Manager",
             "packages": [
                 "keepass",
-                "lastpass",
                 "bitwarden"
             ]
         },
