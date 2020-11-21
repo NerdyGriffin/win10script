@@ -361,7 +361,11 @@ Function CreateJunctionNoClobber {
 			Move-Item -Path "$JunctionPath" -Destination "$JunctionTarget" -Force -Verbose
 		}
 	}
-	junction $JunctionPath $JunctionTarget
+	try {
+		junction $JunctionPath $JunctionTarget
+	} catch {
+		New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -Force -Verbose
+	}
 }
 
 Function CreateCustomJunctionsInProgramFiles {
