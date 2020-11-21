@@ -51,11 +51,11 @@ $tweaks = @(
 	"CreateCustomJunctionsInProgramFiles", # Intended for use with SSD as C:\ and HDD as D:\
 	"CreateCustomJunctionsInAppData",
 	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
-	"InstallPowerline",
-	"InstallIconExportPowerShell",
-	"CustomWindowsTerminalSettings",
+	"CustomPowerShellWithPowerLine",
 	"SchedulePowerShellUpdateHelp",
+	"InstallIconExportPowerShell",
 	"InstallOpenSSHServer",
+	"CustomWindowsTerminalSettings",
 
 	### Windows Apps
 	# "DebloatAll",
@@ -561,7 +561,7 @@ Function InstallPowerShellPackageManagement {
 	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 }
 
-Function InstallPowerline {
+Function CustomPowerShellWithPowerLine {
 	Clear-Host
 	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
 	Install-Module posh-git -Scope CurrentUser -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
