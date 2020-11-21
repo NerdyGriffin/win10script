@@ -20,11 +20,28 @@
             ]
         },
         {
+            "name": "Windows 10 Tweaks",
+            "packages": [
+                "powertoys",
+                "shutup10",
+                "winaero-tweaker",
+                "windowsrepair"
+            ]
+        },
+        {
             "name": "Web Browsers",
             "packages": [
+                "brave",
+                "chromium",
                 "firefox",
-                "googlechrome",
-                "chromium"
+                "googlechrome"
+            ]
+        },
+        {
+            "name": "Password Manager",
+            "packages": [
+                "bitwarden",
+                "keepass"
             ]
         },
         {
@@ -40,13 +57,6 @@
             "name": "LaTeX",
             "packages": [
                 "texmaker"
-            ]
-        },
-        {
-            "name": "Password Manager",
-            "packages": [
-                "keepass",
-                "bitwarden"
             ]
         },
         {
@@ -66,9 +76,9 @@
         {
             "name": "Image Software",
             "packages": [
-                "irfanview",
                 "fsviewer",
-                "gimp"
+                "gimp",
+                "irfanview"
             ]
         },
         {
@@ -129,18 +139,22 @@
                 "etcher",
                 "filebot",
                 "freefilesync",
+                "junction-link-magic",
                 "partitionwizard",
-                "rsync",
-                "rufus"
+                "rufus",
+                "tuxboot"
             ]
         },
         {
-            "name": "Terminal Tools",
+            "name": "Command Line Programs",
             "packages": [
+                "checksum",
                 "curl",
                 "grep",
                 "junction",
                 "microsoft-windows-terminal",
+                "nano",
+                "rsync",
                 "sed",
                 "terminal-icons.powershell"
             ]
@@ -148,14 +162,16 @@
         {
             "name": "Custom Fonts",
             "packages": [
-                "cascadiafonts",
-                "cascadia-code-nerd-font"
+                "cascadia-code-nerd-font",
+                "cascadiafonts"
             ]
         },
         {
             "name": "Development Dependencies, Compilers, & Runtimes",
             "packages": [
                 "dotnet",
+                "dotnetcore-sdk",
+                "dotnetcore3-desktop-runtime",
                 "electron",
                 "jdk8",
                 "make",
@@ -173,26 +189,17 @@
             "packages": [
                 "androidstudio",
                 "arduino",
-                "checksum",
                 "git-credential-manager-for-windows",
                 "git",
                 "gitkraken",
                 "gpg4win",
                 "hxd",
                 "meld",
-                "nano",
                 "notepadplusplus",
                 "visualstudio2017community",
                 "vscode",
                 "winmerge",
                 "winscp"
-            ]
-        },
-        {
-            "name": "VPN",
-            "packages": [
-                "openvpn",
-                "nordvpn"
             ]
         },
         {
@@ -203,12 +210,9 @@
             ]
         },
         {
-            "name": "Windows 10 Improvements",
+            "name": "VPN",
             "packages": [
-                "powertoys",
-                "shutup10",
-                "winaero-tweaker",
-                "windowsrepair"
+                "openvpn"
             ]
         },
         {
@@ -261,6 +265,12 @@
     ],
     "desktop": [
         {
+            "name": "Video Software",
+            "packages": [
+                "streamlabs-obs"
+            ]
+        },
+        {
             "name": "Gaming Peripherals and RGB",
             "packages": [
                 "icue"
@@ -296,6 +306,12 @@
     ],
     "unused": [
         {
+            "name": "Windows 10 Tweaks",
+            "packages": [
+                "f.lux"
+            ]
+        },
+        {
             "name": "Image Software",
             "packages": [
                 "becyicongrabber",
@@ -318,15 +334,7 @@
             ]
         },
         {
-            "name": "VPN",
-            "packages": [
-                "openvpn",
-                "nordvpn",
-                "pia"
-            ]
-        },
-        {
-            "name": "Terminal Tools",
+            "name": "Command Line Programs",
             "packages": [
                 "terminal-icons.powershell"
             ]
@@ -338,9 +346,11 @@
             ]
         },
         {
-            "name": "Windows 10 Improvements",
+            "name": "VPN",
             "packages": [
-                "f.lux"
+                "openvpn",
+                "nordvpn",
+                "pia"
             ]
         },
         {

@@ -33,6 +33,7 @@ $tweaks = @(
 	### Require administrator privileges ###
 	"RequireAdmin",
 	"CreateRestorePoint",
+	"CreateRegistryHKCR",
 
 	### Chris Titus Tech Additions
 	"TitusRegistryTweaks",
@@ -47,9 +48,9 @@ $tweaks = @(
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
 	"GriffinRegistryTweaks",
-	"CreateJunctionsFromProgramFiles", # Intended for use with smaller SSD as C:\ and larger HDD as D:\
-	"InstallGriffinProgs" #REQUIRED FOR OTHER PROGRAM INSTALLS!
-	# "InstallPowerShellPackageManagement",
+	"CreateCustomJunctionsInProgramFiles", # Intended for use with SSD as C:\ and HDD as D:\
+	"CreateCustomJunctionsInAppData",
+	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	"InstallPowerline",
 	"InstallIconExportPowerShell",
 	"CustomWindowsTerminalSettings",
@@ -76,7 +77,7 @@ $tweaks = @(
 	"DisableErrorReporting", # "EnableErrorReporting",
 	"SetP2PUpdateLocal", # "SetP2PUpdateInternet",
 	"DisableDiagTrack", # "EnableDiagTrack",
-	# "DisableWAPPush", # "EnableWAPPush",
+	"DisableWAPPush", # "EnableWAPPush",
 
 	### Security Tweaks ###
 	"SetUACLow", # "SetUACHigh",
@@ -104,15 +105,15 @@ $tweaks = @(
 	# "DisableUpdateDriver", # "EnableUpdateDriver",
 	# "DisableUpdateRestart", # "EnableUpdateRestart",
 	# "DisableHomeGroups", # "EnableHomeGroups",
-	# "DisableSharedExperiences", # "EnableSharedExperiences",
-	# "DisableRemoteAssistance", # "EnableRemoteAssistance",
+	"DisableSharedExperiences", # "EnableSharedExperiences",
+	"DisableRemoteAssistance", # "EnableRemoteAssistance",
 	"EnableRemoteDesktop", # "DisableRemoteDesktop",
 	"DisableAutoplay", # "EnableAutoplay",
 	"DisableAutorun", # "EnableAutorun",
 	"DisableStorageSense", # "EnableStorageSense",
 	"DisableDefragmentation", # "EnableDefragmentation",
 	"DisableSuperfetch", # "EnableSuperfetch",
-	"EnableIndexing",
+	"DisableIndexing", # "EnableIndexing",
 	"SetBIOSTimeUTC", # "SetBIOSTimeLocal",
 	"EnableHibernation", # "DisableHibernation",          #
 	"EnableSleepButton", # "DisableSleepButton",
@@ -128,7 +129,7 @@ $tweaks = @(
 	"DisableStickyKeys", # "EnableStickyKeys",
 	"ShowTaskManagerDetails"        # "HideTaskManagerDetails",
 	"ShowFileOperationsDetails", # "HideFileOperationsDetails",
-	# "DisableFileDeleteConfirm",	# "EnableFileDeleteConfirm",
+	"DisableFileDeleteConfirm",	# "EnableFileDeleteConfirm",
 	"HideTaskbarSearch",
 	#"ShowTaskbarSearchIcon",      # "ShowTaskbarSearchBox",
 	# "HideTaskView", # "ShowTaskView",
@@ -147,7 +148,7 @@ $tweaks = @(
 
 	### Explorer UI Tweaks ###
 	"ShowKnownExtensions", # "HideKnownExtensions",
-	# "HideHiddenFiles",
+	"ShowHiddenFiles", # "HideHiddenFiles",
 	"HideSyncNotifications"         # "ShowSyncNotifications",
 	"HideRecentShortcuts", # "ShowRecentShortcuts",
 	"SetExplorerThisPC", # "SetExplorerQuickAccess",
@@ -175,13 +176,13 @@ $tweaks = @(
 	# "UninstallMsftBloat", # "InstallMsftBloat",
 	"UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
 	# "UninstallWindowsStore",      # "InstallWindowsStore",
-	"EnableXboxFeatures", # "DisableXboxFeatures",          # "EnableXboxFeatures",
+	"EnableXboxFeatures", # "DisableXboxFeatures",
 	"DisableAdobeFlash", # "EnableAdobeFlash",
 	"InstallMediaPlayer", # "UninstallMediaPlayer",
 	# "UninstallInternetExplorer", # "InstallInternetExplorer",
 	# "UninstallWorkFolders", # "InstallWorkFolders",
 	"InstallLinuxSubsystem", # "UninstallLinuxSubsystem",
-	# "InstallHyperV",              # "UninstallHyperV",
+	"InstallHyperV", # "UninstallHyperV",
 	"SetPhotoViewerAssociation", # "UnsetPhotoViewerAssociation",
 	"AddPhotoViewerOpenWith", # "RemovePhotoViewerOpenWith",
 	"InstallPDFPrinter", # "UninstallPDFPrinter",
@@ -222,10 +223,13 @@ function Show-Choco-Menu {
 		Clear-Host
 		Write-Host "================ $Title ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		if ($ConfirmAll) { $selection = 'y' }
-		else { $selection = Read-Host "Please make a selection" }
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' { choco install $ChocoInstall -y;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 } }
 			'n' { Break }
@@ -270,10 +274,13 @@ Function InstallBrave {
 		Clear-Host
 		Write-Host "================ Do You Want to Install Brave Browser? ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		if ($ConfirmAll) { $selection = 'y' }
-		else { $selection = Read-Host "Please make a selection" }
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' {
 				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
@@ -323,40 +330,91 @@ Function GriffinRegistryTweaks {
 	} else {
 		Write-Warning "Could not find 'Add PowerShell to Context Menu.reg'"
 	}
+	Start-Sleep -Seconds 4
 }
 
-Function CreateJunctionsFromProgramFiles {
+Function CreateJunctionNoClobber {
+	param(
+		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
+		[string]$JunctionPath,
+
+		[Parameter(Mandatory)]
+		[ValidateNotNullOrEmpty()]
+		[string]$JunctionTarget
+	)
+
+	if (-Not(Get-Command junction.exe -ErrorAction SilentlyContinue)) {
+		Write-Warning "Command junction.exe was not found"
+		Write-Host "Installing junction.exe via Chocolatey..." -ForegroundColor Cyan
+		choco install junction -y
+	}
+	if (Test-Path $JunctionPath) {
+		if (Test-Path $JunctionTarget) {
+			try {
+				Copy-Item -Path "$JunctionPath\*" -Destination "$JunctionTarget" -Force -Recurse -Verbose
+				Remove-Item -Path "$JunctionPath" -Recurse -Force -Verbose
+			} catch {
+				break
+			}
+		} else {
+			Move-Item -Path "$JunctionPath" -Destination "$JunctionTarget" -Force -Verbose
+		}
+	}
+	junction.exe $JunctionPath $JunctionTarget
+}
+
+Function CreateCustomJunctionsInProgramFiles {
 	do {
 		Clear-Host
-		Write-Host "================ Do You Want to Create Junctions in 'C:\Program Files' to Custom Install Locations on 'D:\' ? ================"
+		Write-Host "================ Do You Want to Create Junctions in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		if ($ConfirmAll) { $selection = 'y' }
-		else { $selection = Read-Host "Please make a selection" }
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' {
 				Write-Host "Creating Custom Junctions in" $env:ProgramFiles "..."
 				$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
-				$FoldersToJunction = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
+				$JunctionNames = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
 				foreach ($ProgramFiles in $ProgramFilesLocations) {
-					foreach ($FolderName in $FoldersToJunction) {
+					foreach ($FolderName in $JunctionNames) {
 						$JunctionPath = $ProgramFiles + "\" + $FolderName
 						$JunctionTarget = "D:\" + $FolderName
-						If (-Not(Test-Path $JunctionTarget)) {
-							New-Item -Type Directory -Path "$JunctionTarget"
-						}
-						New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -ErrorAction Continue
+						CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
 					}
 				}
+			}
+			'n' { Break }
+			'q' { Exit }
+		}
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+}
+
+Function CreateCustomJunctionsInAppData {
+	do {
+		Clear-Host
+		Write-Host "================ Do You Want to Create Junctions in '" $env:APPDATA "' to Custom Install Locations on 'D:\' ? ================"
+		Write-Host "Y: Press 'Y' to do this."
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
+		switch ($selection) {
+			'y' {
 				Write-Host "Creating Custom Junctions in" $env:APPDATA "..."
 				foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
 					$JunctionPath = $env:APPDATA + "\" + $FolderName
 					$JunctionTarget = "D:\" + $FolderName
-					If (-Not(Test-Path $JunctionTarget)) {
-						New-Item -Type Directory -Path "$JunctionTarget"
-					}
-					New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -ErrorAction Continue
+					CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
 				}
 			}
 			'n' { Break }
@@ -428,10 +486,13 @@ Function InstallPresetFromJson {
 		Write-Host "$PackageCount packages have been selected for install."
 		Write-Host "================ Do You Want to Install All $PackageCount Packages? ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		if ($ConfirmAll) { $selection = 'y' }
-		else { $selection = Read-Host "Please make a selection" }
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' {
 				Write-Host "Beginning install..." -ForegroundColor Green
@@ -474,8 +535,7 @@ function Show-Json-Menu {
 		Write-Host
 		Write-Host "N: Press 'N' to skip this."
 		Write-Host "Q: Press 'Q' to stop the entire script."
-		if ($ConfirmAll) { $selection = 'y' }
-		else { $selection = Read-Host "Please make a selection" }
+		$selection = Read-Host "Please make a selection"
 		switch ($selection) {
 			0 {
 				# Attempt to detect computer by checking the computer name
@@ -540,10 +600,13 @@ Function SchedulePowerShellUpdateHelp {
 			Clear-Host
 			Write-Host "================ Do You Want to Schedule a Job That Runs an `Update-Help` Command? ================"
 			Write-Host "Y: Press 'Y' to do this."
-			Write-Host "N: Press 'N' to skip this."
-			Write-Host "Q: Press 'Q' to stop the entire script."
-			if ($ConfirmAll) { $selection = 'y' }
-			else { $selection = Read-Host "Please make a selection" }
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
 			switch ($selection) {
 				'y' {
 					Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
@@ -564,10 +627,13 @@ Function InstallOpenSSHServer {
 		Clear-Host
 		Write-Host "================ Do You Want to Install OpenSSH Server? ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		if ($ConfirmAll) { $selection = 'y' }
-		else { $selection = Read-Host "Please make a selection" }
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' {
 				Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
@@ -2586,11 +2652,13 @@ Function UninstallLinuxSubsystem {
 
 # Install Hyper-V - Not applicable to Home
 Function InstallHyperV {
-	Write-Output "Installing Hyper-V..."
-	If ((Get-WmiObject -Class "Win32_OperatingSystem").Caption -like "*Server*") {
-		Install-WindowsFeature -Name "Hyper-V" -IncludeManagementTools -WarningAction SilentlyContinue | Out-Null
-	} Else {
-		Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-All" -NoRestart -WarningAction SilentlyContinue | Out-Null
+	If ((Get-WmiObject -Class "Win32_ComputerSystem").Manufacturer -NotContains "QEMU") {
+		Write-Output "Installing Hyper-V..."
+		If ((Get-WmiObject -Class "Win32_OperatingSystem").Caption -like "*Server*") {
+			Install-WindowsFeature -Name "Hyper-V" -IncludeManagementTools -WarningAction SilentlyContinue | Out-Null
+		} Else {
+			Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-All" -NoRestart -WarningAction SilentlyContinue | Out-Null
+		}
 	}
 }
 
@@ -2899,6 +2967,12 @@ Function CreateRestorePoint {
 	Checkpoint-Computer -Description "RestorePoint1" -RestorePointType "MODIFY_SETTINGS"
 }
 
+Function CreateRegistryHKCR {
+	if (!(Test-Path "HKCR:\")) {
+		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT
+	}
+}
+
 Function DebloatAll {
 
 	$Bloatware = @(
@@ -2967,10 +3041,6 @@ Function DebloatAll {
 ##########
 # Parse parameters and apply tweaks
 ##########
-
-if (!(Test-Path "HKCR:\")) {
-	New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT
-}
 
 # Normalize path to preset file
 $preset = ""
