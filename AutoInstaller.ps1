@@ -344,9 +344,9 @@ Function CreateJunctionNoClobber {
 		[string]$JunctionTarget
 	)
 
-	if (-Not(Get-Command junction.exe -ErrorAction SilentlyContinue)) {
-		Write-Warning "Command junction.exe was not found"
-		Write-Host "Installing junction.exe via Chocolatey..." -ForegroundColor Cyan
+	if (-Not(Get-Command junction -ErrorAction SilentlyContinue)) {
+		Write-Warning "Command 'junction' was not found"
+		Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
 		choco install junction -y
 	}
 	if (Test-Path $JunctionPath) {
@@ -361,7 +361,7 @@ Function CreateJunctionNoClobber {
 			Move-Item -Path "$JunctionPath" -Destination "$JunctionTarget" -Force -Verbose
 		}
 	}
-	junction.exe $JunctionPath $JunctionTarget
+	junction $JunctionPath $JunctionTarget
 }
 
 Function CreateCustomJunctionsInProgramFiles {
