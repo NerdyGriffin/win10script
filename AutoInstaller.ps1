@@ -533,9 +533,11 @@ Function InstallPresetFromJson {
 					Clear-Host
 					Write-Host "================ Installing "$Package.PackageName" ================" -ForegroundColor Yellow
 					if ($Package.Category -match "Chocolatey") {
-						choco install $Package.PackageName -y --force
+						choco upgrade $Package.PackageName -y --force
 					} else {
-						choco install $Package.PackageName -y
+						# 'choco upgrade' will upgrade the package if there is a new version available,
+						# or it will install the package if it is not already installed
+						choco upgrade $Package.PackageName -y
 					}
 					if ($LASTEXITCODE) {
 						Start-Sleep -Seconds 4
