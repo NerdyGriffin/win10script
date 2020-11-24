@@ -33,7 +33,7 @@ $tweaks = @(
 	### Require administrator privileges ###
 	"RequireAdmin",
 	"CreateRestorePoint",
-	"CreateRegistryHKCR",
+	"CreatePSDriveHKCR",
 
 	### Chris Titus Tech Additions
 	"TitusRegistryTweaks",
@@ -47,15 +47,15 @@ $tweaks = @(
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
-	"GriffinRegistryTweaks",
+	"InstallOpenSSHServer",
 	"CreateCustomJunctionsInProgramFiles", # Intended for use with SSD as C:\ and HDD as D:\
 	"CreateCustomJunctionsInAppData",
 	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
-	"InstallPowerline",
+	"CustomPowerShellWithPowerLine",
+	"AddPowerShellToContextMenu",
+	"SchedulePowerShellUpdateHelp",
 	"InstallIconExportPowerShell",
 	"CustomWindowsTerminalSettings",
-	"SchedulePowerShellUpdateHelp",
-	"InstallOpenSSHServer",
 
 	### Windows Apps
 	# "DebloatAll",
@@ -322,13 +322,25 @@ Function ChangeDefaultApps {
 
 $PSScriptRoot
 
-Function GriffinRegistryTweaks {
+Function AddPowerShellToContextMenu {
 	$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
 	if (Test-Path "$PowerShellContextMenuReg") {
 		Write-Host 'Adding "Open PowerShell Here" to Context Menu'
 		reg import $PowerShellContextMenuReg
 	} else {
-		Write-Warning "Could not find 'Add PowerShell to Context Menu.reg'"
+		Write-Warning "Could not find '" $PowerShellContextMenuReg "'"
+		Write-Host "Attempting to set registry changes manually"
+		If (!(Test-Path "HKCR:")) {
+			New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+		}
+		If (!(Test-Path "HKCR:\Directory\shell\powershellmenu")) {
+			New-Item -Path "HKCR:\Directory\shell\powershellmenu" | Out-Null
+		}
+		Set-Item -Path "HKCR:\Directory\shell\powershellmenu" -Value "Open PowerShell Here"
+		If (!(Test-Path "HKCR:\Directory\shell\powershellmenu\command")) {
+			New-Item -Path "HKCR:\Directory\shell\powershellmenu\command" | Out-Null
+		}
+		Set-Item -Path "HKCR:\Directory\shell\powershellmenu\command" -Value "C:\\\\Windows\\\\system32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe -NoExit -Command Set-Location -LiteralPath '%L'"
 	}
 	Start-Sleep -Seconds 4
 }
@@ -344,84 +356,105 @@ Function CreateJunctionNoClobber {
 		[string]$JunctionTarget
 	)
 
-	if (-Not(Get-Command junction -ErrorAction SilentlyContinue)) {
-		Write-Warning "Command 'junction' was not found"
-		Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
-		choco install junction -y
-	}
-	if (Test-Path $JunctionPath) {
-		if (Test-Path $JunctionTarget) {
-			try {
-				Copy-Item -Path "$JunctionPath\*" -Destination "$JunctionTarget" -Force -Recurse -Verbose
-				Remove-Item -Path "$JunctionPath" -Recurse -Force -Verbose
-			} catch {
-				break
+	try {
+		try {
+			junction $JunctionPath $JunctionTarget
+		} catch {
+			New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -Force -Verbose
+		}
+	} catch {
+		if ((Test-Path $JunctionPath) -and ($JunctionPath -NotMatch $env:ProgramFiles) -and ($JunctionPath -NotMatch ${env:ProgramFiles(x86)})) {
+			if ((Test-Path $JunctionTarget) -and ($JunctionTarget -NotMatch "D:\")) {
+				try {
+					Copy-Item -Path $JunctionPath\* -Destination "$JunctionTarget" -Force -Recurse -Verbose
+					Remove-Item -Path "$JunctionPath" -Recurse -Force -Verbose
+				} catch {
+					break
+				}
+			} else {
+				Move-Item -Path "$JunctionPath" -Destination "$JunctionTarget" -Force -Verbose
 			}
-		} else {
-			Move-Item -Path "$JunctionPath" -Destination "$JunctionTarget" -Force -Verbose
+		}
+		try {
+			junction $JunctionPath $JunctionTarget
+		} catch {
+			New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -Force -Verbose
 		}
 	}
-	junction $JunctionPath $JunctionTarget
 }
 
 Function CreateCustomJunctionsInProgramFiles {
-	do {
-		Clear-Host
-		Write-Host "================ Do You Want to Create Junctions in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
-		Write-Host "Y: Press 'Y' to do this."
-		if ($ConfirmAll) {
-			$selection = 'y'
-		} else {
-			Write-Host "N: Press 'N' to skip this."
-			Write-Host "Q: Press 'Q' to stop the entire script."
-			$selection = Read-Host "Please make a selection"
+	if (Test-Path "D:\") {
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Create Junctions in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
+			switch ($selection) {
+				'y' {
+					if (-Not(Get-Command junction -ErrorAction SilentlyContinue)) {
+						Write-Warning "Command 'junction' was not found"
+						Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
+						choco install junction -y -ErrorAction SilentlyContinue
+					}
+					Write-Host "Creating Custom Junctions in" $env:ProgramFiles "..."
+					$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
+					$JunctionNames = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
+					foreach ($ProgramFiles in $ProgramFilesLocations) {
+						foreach ($FolderName in $JunctionNames) {
+							$JunctionPath = $ProgramFiles + "\" + $FolderName
+							$JunctionTarget = "D:\" + $FolderName
+							CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
+						}
+					}
+				}
+				'n' { Break }
+				'q' { Exit }
+			}
 		}
-		switch ($selection) {
-			'y' {
-				Write-Host "Creating Custom Junctions in" $env:ProgramFiles "..."
-				$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
-				$JunctionNames = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
-				foreach ($ProgramFiles in $ProgramFilesLocations) {
-					foreach ($FolderName in $JunctionNames) {
-						$JunctionPath = $ProgramFiles + "\" + $FolderName
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+}
+
+Function CreateCustomJunctionsInAppData {
+	if (Test-Path "D:\") {
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Create Junctions in '" $env:APPDATA "' to Custom Install Locations on 'D:\' ? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
+			switch ($selection) {
+				'y' {
+					if (-Not(Get-Command junction -ErrorAction SilentlyContinue)) {
+						Write-Warning "Command 'junction' was not found"
+						Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
+						choco install junction -y -ErrorAction SilentlyContinue
+					}
+					Write-Host "Creating Custom Junctions in" $env:APPDATA "..."
+					foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
+						$JunctionPath = $env:APPDATA + "\" + $FolderName
 						$JunctionTarget = "D:\" + $FolderName
 						CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
 					}
 				}
+				'n' { Break }
+				'q' { Exit }
 			}
-			'n' { Break }
-			'q' { Exit }
 		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 	}
-	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-}
-
-Function CreateCustomJunctionsInAppData {
-	do {
-		Clear-Host
-		Write-Host "================ Do You Want to Create Junctions in '" $env:APPDATA "' to Custom Install Locations on 'D:\' ? ================"
-		Write-Host "Y: Press 'Y' to do this."
-		if ($ConfirmAll) {
-			$selection = 'y'
-		} else {
-			Write-Host "N: Press 'N' to skip this."
-			Write-Host "Q: Press 'Q' to stop the entire script."
-			$selection = Read-Host "Please make a selection"
-		}
-		switch ($selection) {
-			'y' {
-				Write-Host "Creating Custom Junctions in" $env:APPDATA "..."
-				foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
-					$JunctionPath = $env:APPDATA + "\" + $FolderName
-					$JunctionTarget = "D:\" + $FolderName
-					CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
-				}
-			}
-			'n' { Break }
-			'q' { Exit }
-		}
-	}
-	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 
 Function InstallPresetFromJson {
@@ -561,7 +594,7 @@ Function InstallPowerShellPackageManagement {
 	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 }
 
-Function InstallPowerline {
+Function CustomPowerShellWithPowerLine {
 	Clear-Host
 	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
 	Install-Module posh-git -Scope CurrentUser -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
@@ -2932,6 +2965,9 @@ Function Stop-EdgePDF {
 
 	#Stops edge from taking over as the default .PDF viewer
 	Write-Output "Stopping Edge from taking over as the default .PDF viewer"
+	If (!(Test-Path "HKCR:")) {
+		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+	}
 	$NoPDF = "HKCR:\.pdf"
 	$NoProgids = "HKCR:\.pdf\OpenWithProgids"
 	$NoWithList = "HKCR:\.pdf\OpenWithList"
@@ -2967,9 +3003,9 @@ Function CreateRestorePoint {
 	Checkpoint-Computer -Description "RestorePoint1" -RestorePointType "MODIFY_SETTINGS"
 }
 
-Function CreateRegistryHKCR {
-	if (!(Test-Path "HKCR:\")) {
-		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT
+Function CreatePSDriveHKCR {
+	If (!(Test-Path "HKCR:")) {
+		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 }
 

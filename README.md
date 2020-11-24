@@ -1,7 +1,16 @@
 # win10script
 This is the Ultimate Windows 10 Script from a creation from multiple debloat scripts and gists from github. I also added Chocolatey and other tools to the script that I install on every machine.
 
-## My Additions
+## NerdyGriffin Additions
+
+- JSON file `preset.json` which contains customized lists of programs to install, categorized by program type and group together as "presets" (such as "default", "desktop", "laptop"
+  - The choice of programs in each of these presets is customized my own personal computers, 
+- Added function to install programs via Chocolatey by parsing the JSON files to retrieve the package names
+  - This function will prompt the user to select which preset they desire, or attempt to automatically detect the right preset
+    - If auto-detect is selected, the program will use the Computer Name to detect either desktop or laptop. By default, the computer name in Windows 10 is typically set to "DESKTOP-..." on desktop or "LAPTOP-..." on laptop. If the computer name contains "DESKTOP", then the desktop preset will be selected, otherwise the laptop preset will be selected by default
+  - Once a preset is selected, the program will print out a table showing all of the programs that will be installed, including the category name of each program and the name of the corresponding preset for each program. The user will be prompted to confirm whether this list is correct before the install is allowed to begin.
+
+## Chris Titus Additions
 
 - Dark Mode
 - One Command to launch and run
