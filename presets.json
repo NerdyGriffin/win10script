@@ -326,6 +326,84 @@
             ]
         }
     ],
+    "groups": [
+        {
+            "default-packages": [
+                "advanced-ip-scanner",
+                "bitwarden",
+                "cascadia-code-nerd-font",
+                "cascadiafonts",
+                "choco-upgrade-all-at-startup",
+                "choco-upgrade-all-at",
+                "chocolatey-fastanswers.extension",
+                "chocolatey-misc-helpers.extension",
+                "ChocolateyGUI",
+                "ChocolateyPackageUpdater",
+                "chocolateypowershell",
+                "grep",
+                "jdk8",
+                "nano",
+                "notepadplusplus"
+            ],
+            "description": "Smallest possible installation",
+            "group": "Core",
+            "mandatory-packages": [
+                "7zip",
+                "brave",
+                "chocolatey-core.extension",
+                "chocolatey-dotnetfx.extension",
+                "chocolatey-font-helpers.extension",
+                "curl",
+                "junction",
+                "keepass",
+                "ssh-copy-id",
+                "wsl"
+            ],
+            "optional-packages": [
+                "chocolatey-visualstudio.extension",
+                "chocolatey-vscode.extension",
+                "ChocolateyDeploymentUtils",
+                "ChocolateyExplorer"
+            ]
+        },
+        {
+            "default-packages": [
+                "diffmerge",
+                "git",
+                "gpg4win",
+                "meld",
+                "nvm",
+                "patch",
+                "python",
+                "python3",
+                "strawberryperl",
+                "universal-ctags",
+                "vscode"
+            ],
+            "description": "A basic development environment.",
+            "group": "Development Tools",
+            "mandatory-packages": [
+                "dotnet",
+                "dotnetcore-sdk",
+                "dotnetcore3-desktop-runtime",
+                "make",
+                "mingw",
+                "pkgconfiglite",
+                "winflexbison"
+            ],
+            "optional-packages": [
+                "cmake",
+                "gh",
+                "git-credential-manager-for-windows",
+                "gitdiffmargin",
+                "gitextensions",
+                "gitkraken",
+                "oh-my-posh",
+                "posh-github",
+                "poshgit"
+            ]
+        }
+    ],
     "laptop": [
         {
             "name": "Office Suite",
@@ -393,38 +471,6 @@
             "name": "Virtual Machines",
             "packages": [
                 "vmwareworkstation"
-            ]
-        }
-    ],
-    "groups": [
-        {
-            "group": "Development Tools",
-            "description": "A basic development environment.",
-            "mandatory-packages": [
-                "make",
-                "mingw",
-                "pkgconfiglite",
-                "winflexbison"
-            ],
-            "default-packages": [
-                "diffmerge",
-                "git",
-                "gpg4win",
-                "patch",
-                "strawberryperl",
-                "universal-ctags",
-                "vscode"
-            ],
-            "optional-packages": [
-                "cmake",
-                "gh",
-                "git-credential-manager-for-windows",
-                "gitdiffmargin",
-                "gitextensions",
-                "gitkraken",
-                "oh-my-posh",
-                "posh-github",
-                "poshgit"
             ]
         }
     ]
