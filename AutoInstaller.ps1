@@ -105,7 +105,7 @@ $tweaks = @(
 	# "DisableUpdateDriver", # "EnableUpdateDriver",
 	# "DisableUpdateRestart", # "EnableUpdateRestart",
 	# "DisableHomeGroups", # "EnableHomeGroups",
-	"DisableSharedExperiences", # "EnableSharedExperiences",
+	# "DisableSharedExperiences", # "EnableSharedExperiences",
 	"DisableRemoteAssistance", # "EnableRemoteAssistance",
 	"EnableRemoteDesktop", # "DisableRemoteDesktop",
 	"DisableAutoplay", # "EnableAutoplay",
@@ -317,7 +317,7 @@ Function ChangeDefaultApps {
 }
 
 #########
-# Personalized Griffin Customizations
+# Personalized NerdyGriffin Customizations
 #########
 
 $PSScriptRoot
