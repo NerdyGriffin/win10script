@@ -24,6 +24,7 @@
             "packages": [
                 "powertoys",
                 "shutup10",
+                "snappy-driver-installer",
                 "winaero-tweaker",
                 "windowsrepair"
             ]
@@ -150,13 +151,30 @@
             "packages": [
                 "checksum",
                 "curl",
-                "grep",
                 "junction",
                 "microsoft-windows-terminal",
-                "nano",
                 "rsync",
+                "terminal-icons.powershell",
+                "winscreenfetch"
+            ]
+        },
+        {
+            "name": "GNU",
+            "packages": [
+                "awk",
+                "diffutils",
+                "findutils",
+                "gimp",
+                "gnuwin",
+                "grep",
+                "gnuplot",
+                "gperf",
+                "make",
+                "nano",
+                "octave",
+                "patch",
                 "sed",
-                "terminal-icons.powershell"
+                "wget"
             ]
         },
         {
@@ -174,9 +192,7 @@
                 "dotnetcore3-desktop-runtime",
                 "electron",
                 "jdk8",
-                "make",
                 "nvm",
-                "octave",
                 "openjdk11",
                 "pip",
                 "python",
@@ -189,13 +205,21 @@
             "packages": [
                 "androidstudio",
                 "arduino",
+                "diffmerge",
+                "gh",
                 "git-credential-manager-for-windows",
                 "git",
+                "gitdiffmargin",
+                "gitextensions",
                 "gitkraken",
                 "gpg4win",
                 "hxd",
                 "meld",
                 "notepadplusplus",
+                "oh-my-posh",
+                "posh-github",
+                "poshgit",
+                "universal-ctags",
                 "visualstudio2017community",
                 "vscode",
                 "winmerge",
@@ -289,6 +313,12 @@
             ]
         },
         {
+            "name": "Flight Simulator",
+            "packages": [
+                "flightgear"
+            ]
+        },
+        {
             "name": "Game Engines",
             "packages": [
                 "unity",
@@ -363,6 +393,38 @@
             "name": "Virtual Machines",
             "packages": [
                 "vmwareworkstation"
+            ]
+        }
+    ],
+    "groups": [
+        {
+            "group": "Development Tools",
+            "description": "A basic development environment.",
+            "mandatory-packages": [
+                "make",
+                "mingw",
+                "pkgconfiglite",
+                "winflexbison"
+            ],
+            "default-packages": [
+                "diffmerge",
+                "git",
+                "gpg4win",
+                "patch",
+                "strawberryperl",
+                "universal-ctags",
+                "vscode"
+            ],
+            "optional-packages": [
+                "cmake",
+                "gh",
+                "git-credential-manager-for-windows",
+                "gitdiffmargin",
+                "gitextensions",
+                "gitkraken",
+                "oh-my-posh",
+                "posh-github",
+                "poshgit"
             ]
         }
     ]
