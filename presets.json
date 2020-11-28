@@ -91,34 +91,6 @@
             ]
         },
         {
-            "name": "Blender",
-            "packages": [
-                "blender"
-            ]
-        },
-        {
-            "name": "Chat Clients",
-            "packages": [
-                "slack",
-                "discord",
-                "telegram"
-            ]
-        },
-        {
-            "name": "Video Conferencing",
-            "packages": [
-                "jitsi-meet-electron",
-                "zoom"
-            ]
-        },
-        {
-            "name": "Remote Desktop",
-            "packages": [
-                "vnc-viewer",
-                "parsec"
-            ]
-        },
-        {
             "name": "Cloud Storage",
             "packages": [
                 "nextcloud-client",
@@ -140,6 +112,7 @@
                 "etcher",
                 "filebot",
                 "freefilesync",
+                "Folder_Size",
                 "junction-link-magic",
                 "partitionwizard",
                 "rufus",
@@ -147,9 +120,10 @@
             ]
         },
         {
-            "name": "Command Line Programs",
+            "name": "Terminal Tools",
             "packages": [
                 "checksum",
+                "ConEmu",
                 "curl",
                 "junction",
                 "microsoft-windows-terminal",
@@ -178,18 +152,24 @@
             ]
         },
         {
-            "name": "Custom Fonts",
-            "packages": [
-                "cascadia-code-nerd-font",
-                "cascadiafonts"
-            ]
-        },
-        {
             "name": "Development Dependencies, Compilers, & Runtimes",
             "packages": [
-                "dotnet",
+                "dotnetcore-3.0-aspnetruntime",
+                "dotnetcore-3.0-desktopruntime",
+                "dotnetcore-3.0-runtime",
+                "dotnetcore-3.0-sdk",
+                "dotnetcore-3.0-windowshosting",
+                "dotnetcore-3.1-aspnetruntime",
+                "dotnetcore-3.1-desktopruntime",
+                "dotnetcore-3.1-runtime",
+                "dotnetcore-3.1-sdk",
+                "dotnetcore-3.1-windowshosting",
+                "dotnetcore-aspnetruntime",
+                "dotnetcore-desktopruntime",
+                "dotnetcore-runtime",
                 "dotnetcore-sdk",
-                "dotnetcore3-desktop-runtime",
+                "dotnetcore-windowshosting",
+                "dotnetcore",
                 "electron",
                 "jdk8",
                 "nvm",
@@ -197,7 +177,7 @@
                 "pip",
                 "python",
                 "python3",
-                "strawberryperl"
+                "StrawberryPerl"
             ]
         },
         {
@@ -212,12 +192,12 @@
                 "gitdiffmargin",
                 "gitextensions",
                 "gitkraken",
-                "gpg4win",
+                "Gpg4win",
                 "hxd",
                 "meld",
                 "notepadplusplus",
                 "oh-my-posh",
-                "posh-github",
+                "Posh-GitHub",
                 "poshgit",
                 "universal-ctags",
                 "visualstudio2017community",
@@ -326,66 +306,469 @@
             ]
         }
     ],
+    "environment-groups": [
+        {
+            "description": "Workstation is a user-friendly desktop system for laptops and PCs.",
+            "environment-group": "Workstation",
+            "mandatory-groups": [
+                "Core",
+                "Fonts",
+                "Guest Desktop Agents",
+                "RGB and Gaming Peripherals",
+                "Internet Browser",
+                "GNOME -> Microsoft Windows",
+                "Multimedia",
+                "Standard",
+                "Workstation product core"
+            ],
+            "optional-groups": [
+                "Backup Client",
+                "GNOME Applications -> Microsoft Windows Applications",
+                "Internet Applications",
+                "Office Suite and Productivity",
+                "Remote Desktop Clients"
+            ]
+        }
+    ],
     "groups": [
         {
             "default-packages": [
-                "advanced-ip-scanner",
-                "bitwarden",
                 "cascadia-code-nerd-font",
-                "cascadiafonts",
-                "choco-upgrade-all-at-startup",
-                "choco-upgrade-all-at",
-                "chocolatey-fastanswers.extension",
-                "chocolatey-misc-helpers.extension",
-                "ChocolateyGUI",
-                "ChocolateyPackageUpdater",
-                "chocolateypowershell",
-                "grep",
-                "jdk8",
-                "nano",
-                "notepadplusplus"
+                "cascadiafonts"
             ],
-            "description": "Smallest possible installation",
+            "description": "Fonts packages for rendering text on the desktop.",
+            "group": "Fonts",
+            "mandatory-packages": [
+                "chocolatey-font-helpers.extension"
+            ]
+        },
+        {
+            "description": "Client tools for connecting to a backup server and doing backups.",
+            "group": "Backup Client",
+            "mandatory-packages": [
+                "choco-package-list-backup"
+            ],
+            "optional-packages": [
+                "nextcloud-client",
+                "googledrive",
+                "google-backup-and-sync"
+            ]
+        },
+        {
+            "group": "Remote Desktop Clients",
+            "optional-packages": [
+                "freerdp",
+                "vnc-viewer",
+                "parsec"
+            ]
+        },
+        {
+            "default-packages": [
+                "adobereader",
+                "libreoffice-fresh"
+            ],
+            "description": "A full-purpose office suite, and other productivity tools.",
+            "group": "Office Suite and Productivity",
+            "mandatory-packages": [],
+            "optional-packages": [
+                "calibre",
+                "kindle"
+            ]
+        },
+        {
+            "default-packages": [
+                "chocolatey"
+            ],
+            "description": "Template for the structure of package groups",
+            "group": "Template",
+            "mandatory-packages": [
+                "chocolatey"
+            ],
+            "optional-packages": [
+                "chocolatey"
+            ]
+        },
+        {
+            "default-packages": [
+                "awk",
+                "grep",
+                "llvm",
+                "nano",
+                "ssh-copy-id"
+            ],
+            "description": "Smallest possible installation of Chocolatey and command line tools",
             "group": "Core",
             "mandatory-packages": [
-                "7zip",
-                "brave",
                 "chocolatey-core.extension",
                 "chocolatey-dotnetfx.extension",
                 "chocolatey-font-helpers.extension",
-                "curl",
-                "junction",
+                "chocolatey-misc-helpers.extension",
+                "psutils",
+                "unzip",
+                "wsl",
+                "zip"
+            ]
+        },
+        {
+            "default-packages": [
+                "dotnetcore-aspnetruntime",
+                "dotnetcore-desktopruntime",
+                "dotnetcore-runtime",
+                "dotnetcore-sdk",
+                "dotnetcore-windowshosting",
+                "dotnetcore"
+            ],
+            "description": "Tools to develop .NET applications",
+            "group": ".NET Core Development",
+            "mandatory-packages": [
+                "chocolatey-dotnetfx.extension"
+            ],
+            "optional-packages": [
+                "dotnet-aspnetruntime",
+                "dotnet-desktopruntime",
+                "dotnet-runtime",
+                "dotnet-sdk",
+                "dotnet-windowshosting",
+                "dotnet",
+                "dotnetcore-2.1-aspnetruntime",
+                "dotnetcore-2.1-desktopruntime",
+                "dotnetcore-2.1-runtime",
+                "dotnetcore-2.1-sdk",
+                "dotnetcore-2.1-windowshosting",
+                "dotnetcore-3.0-aspnetruntime",
+                "dotnetcore-3.0-desktopruntime",
+                "dotnetcore-3.0-runtime",
+                "dotnetcore-3.0-sdk",
+                "dotnetcore-3.0-windowshosting",
+                "dotnetcore-3.1-aspnetruntime",
+                "dotnetcore-3.1-desktopruntime",
+                "dotnetcore-3.1-runtime",
+                "dotnetcore-3.1-sdk",
+                "dotnetcore-3.1-windowshosting"
+            ]
+        },
+        {
+            "default-packages": [
+                "cpu-z",
+                "gpu-z",
+                "hwinfo",
+                "hwmonitor",
+                "plasso"
+            ],
+            "description": "GUI tools for debugging applications and performance.",
+            "group": "Desktop Debugging and Performance Tools",
+            "mandatory-packages": [],
+            "optional-packages": [
+                "furmark",
+                "heaven-benchmark",
+                "msiafterburner",
+                "procexp",
+                "procmon",
+                "superpostion-benchmark",
+                "valley-benchmark"
+            ]
+        },
+        {
+            "default-packages": [
+                "7zip",
+                "choco-package-list-backup",
+                "choco-upgrade-all-at",
+                "freefilesync",
+                "nano",
+                "partitionwizard",
+                "powertoys",
+                "procmon",
+                "rsync",
+                "unzip",
+                "zip"
+            ],
+            "description": "The standard installation of Chocolatey and GNU tools on Windows 10.",
+            "group": "Standard",
+            "mandatory-packages": [
+                "chocolatey-core.extension",
+                "chocolatey-dotnetfx.extension",
+                "chocolatey-fastanswers.extension",
+                "chocolatey-font-helpers.extension",
+                "chocolatey-misc-helpers.extension",
+                "ChocolateyDeploymentUtils",
+                "ChocolateyExplorer",
+                "ChocolateyGUI",
+                "ChocolateyPackageUpdater",
+                "chocolateypowershell",
+                "Gpg4win",
                 "keepass",
-                "ssh-copy-id",
+                "llvm",
+                "notepadplusplus",
+                "psutils",
+                "shutup10",
+                "winaero-tweaker",
                 "wsl"
             ],
             "optional-packages": [
+                "choco-shortcuts-winconfig",
+                "choco-upgrade-all-at-startup",
                 "chocolatey-visualstudio.extension",
                 "chocolatey-vscode.extension",
-                "ChocolateyDeploymentUtils",
-                "ChocolateyExplorer"
+                "snappy-driver-installer",
+                "etcher",
+                "filebot",
+                "rufus",
+                "fuse-nfs",
+                "tuxboot",
+                "windowsrepair"
+            ]
+        },
+        {
+            "default-packages": [
+                "visualstudio2017community",
+                "vscode"
+            ],
+            "description": "Recommended development headers and libraries for developing applications to run on Windows 10.",
+            "group": "Platform Development",
+            "mandatory-packages": [
+                "dotnetcore-sdk",
+                "electron",
+                "nvm"
+            ],
+            "optional-packages": [
+                "jsonedit"
+            ]
+        },
+        {
+            "default-packages": [
+                "unity",
+                "unity-hub"
+            ],
+            "group": "Unity Game Development"
+        },
+        {
+            "default-packages": [
+                "firefox"
+            ],
+            "description": "The Brave web browser and others",
+            "group": "Internet Browsers",
+            "mandatory-packages": [
+                "brave"
+            ],
+            "optional-packages": [
+                "chromium",
+                "googlechrome"
+            ]
+        },
+        {
+            "default-packages": [
+                "slack",
+                "discord",
+                "telegram",
+                "jitsi-meet-electron",
+                "zoom"
+            ],
+            "description": "Email, chat, and video conferencing software.",
+            "group": "Internet Applications"
+        },
+        {
+            "description": "Clients for installing and managing virtualization instances.",
+            "group": "Virtualization Client",
+            "mandatory-packages": [
+                "vmwareworkstation"
+            ],
+            "optional-packages": [
+                "virtualbox"
+            ]
+        },
+        {
+            "description": "Tools for mathematical and scientific computations, and parallel computing.",
+            "group": "Scientific Support",
+            "optional-packages": [
+                "geogebra",
+                "gnuplot",
+                "octave",
+                "python3"
+            ]
+        },
+        {
+            "description": "The TeX system for editing, typesetting, previewing, and printing TeX documents.",
+            "group": "TeX formatting system",
+            "mandatory-packages": [
+                "texlive"
+            ],
+            "optional-packages": [
+                "texmaker"
+            ]
+        },
+        {
+            "description": "Tools for debugging misbehaving applications and diagnosing performance problems.",
+            "group": "Debugging Tools",
+            "optional-packages": [
+                "heapmemview",
+                "procexp",
+                "procmon",
+                "simpleprogramdebugger "
+            ]
+        },
+        {
+            "default-packages": [
+                "gperf",
+                "plasso"
+            ],
+            "description": "Tools for diagnosing system and application-level performance problems.",
+            "group": "Performance Tools",
+            "mandatory-packages": [
+                "procmon",
+                "procexp"
+            ]
+        },
+        {
+            "description": "Graphical system administration tools for managing many aspects of a system.",
+            "group": "Graphical Administration Tools",
+            "optional-packages": [
+                "plasso ",
+                "procexp",
+                "procmon",
+                "wireshark"
+            ]
+        },
+        {
+            "default-packages": [
+                "Lua",
+                "luarocks"
+            ],
+            "group": "Lua"
+        },
+        {
+            "default-packages": [
+                "cemu",
+                "dolphin",
+                "minecraft-launcher"
+            ],
+            "group": "Video Games and Game Launchers",
+            "mandatory-packages": [
+                "goggalaxy",
+                "steam",
+                "steam-cleaner",
+                "steamlibrarymanager.portable"
+            ],
+            "optional-packages": [
+                "epicgameslauncher",
+                "flightgear",
+                "uplay",
+                "origin",
+                "twitch"
+            ]
+        },
+        {
+            "default-packages": [
+                "logitechgaming"
+            ],
+            "group": "RGB and Gaming Peripherals",
+            "optional-packages": [
+                "icue"
+            ]
+        },
+        {
+            "default-packages": [
+                "cheatengine",
+                "gamesavemanager",
+                "steam-cleaner",
+                "steamlibrarymanager.portable"
+            ],
+            "group": "Game Utilities and Cheats"
+        },
+        {
+            "default-packages": [
+                "plasso",
+                "procexp",
+                "procmon",
+                "msiafterburner",
+                "hwmonitor"
+            ],
+            "description": "A set of tools to monitor server hardware.",
+            "group": "Hardware Monitoring Utilities",
+            "optional-packages": [
+                "cpu-z",
+                "hwinfo",
+                "gpu-z"
+            ]
+        },
+        {
+            "description": "Audio/video framework common to desktops",
+            "group": "Multimedia",
+            "mandatory-packages": [
+                "foobar2000",
+                "freeencoderpack",
+                "fsviewer",
+                "k-litecodecpackfull",
+                "vlc"
+            ],
+            "optional-packages": [
+                "audacity",
+                "blender",
+                "gimp",
+                "irfanview",
+                "obs-studio"
+            ]
+        },
+        {
+            "default-packages": [
+                "audacity",
+                "blender",
+                "gimp",
+                "obs-studio"
+            ],
+            "description": "Software for creation and manipulation of still images.",
+            "group": "Graphics Creation Tools",
+            "optional-packages": [
+                "streamlabs-obs"
+            ]
+        },
+        {
+            "default-packages": [
+                "awk",
+                "diffutils",
+                "findutils",
+                "gimp",
+                "gnuwin",
+                "grep",
+                "gnuplot",
+                "gperf",
+                "make",
+                "nano",
+                "octave",
+                "patch",
+                "sed",
+                "wget"
+            ],
+            "description": "Packages that are a part of, the related to, the GNU Project.",
+            "group": "GNU"
+        },
+        {
+            "description": "Basic Python web application support.",
+            "group": "Python Web",
+            "mandatory-packages": [
+                "curl",
+                "python3"
             ]
         },
         {
             "default-packages": [
                 "diffmerge",
+                "diffutils",
+                "findutils",
                 "git",
-                "gpg4win",
+                "Gpg4win",
+                "jsonedit",
                 "meld",
-                "nvm",
+                "notepadplusplus",
                 "patch",
-                "python",
-                "python3",
-                "strawberryperl",
+                "StrawberryPerl",
                 "universal-ctags",
-                "vscode"
+                "winmerge"
             ],
             "description": "A basic development environment.",
             "group": "Development Tools",
             "mandatory-packages": [
-                "dotnet",
-                "dotnetcore-sdk",
-                "dotnetcore3-desktop-runtime",
+                "llvm",
+                "gnuwin",
                 "make",
                 "mingw",
                 "pkgconfiglite",
@@ -395,12 +778,174 @@
                 "cmake",
                 "gh",
                 "git-credential-manager-for-windows",
-                "gitdiffmargin",
-                "gitextensions",
-                "gitkraken",
+                "hxd"
+            ]
+        },
+        {
+            "description": "Additional development headers and libraries for building open-source applications.",
+            "group": "Additional Development",
+            "mandatory-packages": [
+                "dotnetcore-sdk",
+                "dotnetcore",
+                "electron",
+                "nvm",
+                "octave",
+                "openjdk",
+                "openjdk8",
+                "openjdk11",
+                "pip",
+                "python",
+                "python3",
+                "StrawberryPerl"
+            ]
+        },
+        {
+            "default-packages": [
+                "icedtea-web"
+            ],
+            "description": "Java support for the Windows Server and Desktop Platforms",
+            "group": "Java Platform",
+            "mandatory-packages": [
+                "openjdk",
+                "openjdk8"
+            ]
+        },
+        {
+            "default-packages": [
+                "7zip",
+                "choco-package-list-backup",
+                "choco-shortcuts-winconfig",
+                "filebot",
+                "freefilesync"
+            ],
+            "description": "Packages mandatory for the workstation product.",
+            "group": "Workstation product core",
+            "mandatory-packages": [
+                "cascadia-code-nerd-font",
+                "cascadiafonts",
+                "choco-upgrade-all-at-startup",
+                "choco-upgrade-all-at",
+                "chocolatey-core.extension",
+                "chocolatey-dotnetfx.extension",
+                "chocolatey-fastanswers.extension",
+                "chocolatey-font-helpers.extension",
+                "chocolatey-misc-helpers.extension",
+                "ChocolateyDeploymentUtils",
+                "ChocolateyExplorer",
+                "ChocolateyGUI",
+                "ChocolateyPackageUpdater",
+                "chocolateypowershell",
+                "curl",
+                "dos2unix",
+                "ext2fsd",
+                "ext2ifs",
+                "fuse-nfs",
+                "git",
+                "Gpg4win",
+                "grep",
+                "jdk8",
+                "keepass",
+                "nano",
+                "notepadplusplus",
+                "psutils",
+                "rsync",
+                "tartool",
+                "telnet",
+                "tree",
+                "unzip",
+                "wsl",
+                "zip"
+            ],
+            "optional-packages": [
+                "etcher",
+                "junction-link-magic",
+                "partitionwizard",
+                "rufus",
+                "tuxboot"
+            ]
+        },
+        {
+            "group": "Powerline for PowerShell",
+            "mandatory-packages": [
+                "git",
                 "oh-my-posh",
-                "posh-github",
-                "poshgit"
+                "Posh-GitHub",
+                "poshgit",
+                "cascadia-code-nerd-font",
+                "cascadiafonts"
+            ]
+        },
+        {
+            "default-packages": [
+                "diffmerge",
+                "gh",
+                "git-credential-manager-for-windows",
+                "gitkraken"
+            ],
+            "group": "GitHub Tools",
+            "mandatory-packages": [
+                "git",
+                "Gpg4win"
+            ],
+            "optional-packages": [
+                "gitdiffmargin",
+                "gitextensions"
+            ]
+        },
+        {
+            "default-packages": [
+                "vmware-tools"
+            ],
+            "description": "Virtualization utilities and drivers for VMware",
+            "group": "VMware platform specific packages"
+        },
+        {
+            "default-packages": [
+                "virtio-drivers"
+            ],
+            "description": "Virtualization drivers for RHEL VirtIO and QEMU",
+            "group": "Virtio drivers"
+        },
+        {
+            "description": "Enables the system to attach to network storage.",
+            "group": "Network File System Client",
+            "mandatory-packages": [
+                "ext2fsd",
+                "ext2ifs",
+                "fuse-nfs",
+                "filezilla",
+                "nextcloud-client",
+                "Wget",
+                "winscp"
+            ],
+            "optional-packages": [
+                "googledrive",
+                "google-backup-and-sync"
+            ]
+        },
+        {
+            "group": "Download Clients",
+            "optional-packages": [
+                "qbittorrent",
+                "megasync"
+            ]
+        },
+        {
+            "default-packages": [
+                "fah"
+            ],
+            "group": "Distributed Computing"
+        },
+        {
+            "description": "Tools for configuring and analyzing computer networks.",
+            "group": "Networking Tools",
+            "optional-packages": [
+                "advanced-ip-scanner",
+                "iperf2",
+                "netscan",
+                "putty",
+                "wireshark",
+                "winscp"
             ]
         }
     ],
@@ -436,12 +981,6 @@
             ]
         },
         {
-            "name": "Distributed Computing",
-            "packages": [
-                "fah"
-            ]
-        },
-        {
             "name": "Command Line Programs",
             "packages": [
                 "terminal-icons.powershell"
@@ -465,12 +1004,6 @@
             "name": "GPU Utilities",
             "packages": [
                 "evga-precision-xoc"
-            ]
-        },
-        {
-            "name": "Virtual Machines",
-            "packages": [
-                "vmwareworkstation"
             ]
         }
     ]
