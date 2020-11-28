@@ -193,7 +193,7 @@ $tweaks = @(
 	# "HideServerManagerOnLogin",   # "ShowServerManagerOnLogin",
 	# "DisableShutdownTracker",     # "EnableShutdownTracker",
 	# "DisablePasswordPolicy",      # "EnablePasswordPolicy",
-	"EnableCtrlAltDelLogin" # "DisableCtrlAltDelLogin",
+	# "DisableCtrlAltDelLogin",     # "EnableCtrlAltDelLogin",
 	# "DisableIEEnhancedSecurity",  # "EnableIEEnhancedSecurity",
 	# "EnableAudio",                # "DisableAudio",
 
@@ -454,38 +454,38 @@ Function CreateCustomSymbolicLinksInAppData {
 
 Function CreateSymbloicLinksToServerShares {
 
-		do {
-			Clear-Host
-			Write-Host "================ Do You Want to Create SymbolicLinks in '" $HOME "' to Custom Install Locations on a Samba server share? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					# TODO: Prompt user for the name of the hostname or domain name of the file server \\HOME-SERVER\ or \\files.someplace.net\
-					# Then prompt for the name of the share (i.e. media in this case)
-					$ServerName = "GRIFFINUNRAID"
-					$MediaShare = "media"
-					$ServerPath = "\\" + $ServerName + "\" + $MediaShare
-					if (Test-Path "$ServerPath") {
-						Write-Host "Creating Custom SymbolicLinks in" $HOME "..."
+	do {
+		Clear-Host
+		Write-Host "================ Do You Want to Create SymbolicLinks in '" $HOME "' to Custom Install Locations on a Samba server share? ================"
+		Write-Host "Y: Press 'Y' to do this."
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
+		switch ($selection) {
+			'y' {
+				# TODO: Prompt user for the name of the hostname or domain name of the file server \\HOME-SERVER\ or \\files.someplace.net\
+				# Then prompt for the name of the share (i.e. media in this case)
+				$ServerName = "GRIFFINUNRAID"
+				$MediaShare = "media"
+				$ServerPath = "\\" + $ServerName + "\" + $MediaShare
+				if (Test-Path "$ServerPath") {
+					Write-Host "Creating Custom SymbolicLinks in" $HOME "..."
 					foreach ($FolderName in @("Music", "Pictures", "Videos")) {
 						$SymbolicLinkPath = $HOME + "\" + $FolderName
 						$SymbolicLinkTarget = $ServerPath + $FolderName
 						CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
 					}
 				}
-				}
-				'n' { Break }
-				'q' { Exit }
 			}
+			'n' { Break }
+			'q' { Exit }
 		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 
 Function InstallPresetFromJson {

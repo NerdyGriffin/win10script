@@ -3,7 +3,6 @@
         {
             "name": "Chocolatey",
             "packages": [
-                "choco-upgrade-all-at-startup",
                 "choco-upgrade-all-at",
                 "chocolatey-core.extension",
                 "chocolatey-dotnetfx.extension",
@@ -506,7 +505,6 @@
             ],
             "optional-packages": [
                 "choco-shortcuts-winconfig",
-                "choco-upgrade-all-at-startup",
                 "chocolatey-visualstudio.extension",
                 "chocolatey-vscode.extension",
                 "snappy-driver-installer",
@@ -823,7 +821,6 @@
             "mandatory-packages": [
                 "cascadia-code-nerd-font",
                 "cascadiafonts",
-                "choco-upgrade-all-at-startup",
                 "choco-upgrade-all-at",
                 "chocolatey-core.extension",
                 "chocolatey-dotnetfx.extension",
@@ -950,6 +947,12 @@
         }
     ],
     "laptop": [
+        {
+            "name": "Chocolatey",
+            "packages": [
+                "choco-upgrade-all-at-startup"
+            ]
+        },
         {
             "name": "Office Suite",
             "packages": [
