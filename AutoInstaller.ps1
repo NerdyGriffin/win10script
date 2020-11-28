@@ -48,8 +48,8 @@ $tweaks = @(
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
 	"InstallOpenSSHServer",
-	"CreateCustomJunctionsInProgramFiles", # Intended for use with SSD as C:\ and HDD as D:\
-	"CreateCustomJunctionsInAppData",
+	"CreateCustomSymbolicLinksInProgramFiles", # Intended for use with SSD as C:\ and HDD as D:\
+	"CreateCustomSymbolicLinksInAppData",
 	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	"CustomPowerShellWithPowerLine",
 	"AddPowerShellToContextMenu",
@@ -345,49 +345,49 @@ Function AddPowerShellToContextMenu {
 	Start-Sleep -Seconds 4
 }
 
-Function CreateJunctionNoClobber {
+Function CreateSymbolicLinkNoClobber {
 	param(
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
-		[string]$JunctionPath,
+		[string]$SymbolicLinkPath,
 
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
-		[string]$JunctionTarget
+		[string]$SymbolicLinkTarget
 	)
 
 	try {
 		try {
-			junction $JunctionPath $JunctionTarget
+			junction $SymbolicLinkPath $SymbolicLinkTarget
 		} catch {
-			New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -Force -Verbose
+			New-Item -Path "$SymbolicLinkPath" -Type SymbolicLink -Target "$SymbolicLinkTarget" -Force -Verbose
 		}
 	} catch {
-		if ((Test-Path $JunctionPath) -and ($JunctionPath -NotMatch $env:ProgramFiles) -and ($JunctionPath -NotMatch ${env:ProgramFiles(x86)})) {
-			if ((Test-Path $JunctionTarget) -and ($JunctionTarget -NotMatch "D:\")) {
+		if ((Test-Path $SymbolicLinkPath) -and ($SymbolicLinkPath -NotMatch $env:ProgramFiles) -and ($SymbolicLinkPath -NotMatch ${env:ProgramFiles(x86)})) {
+			if ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
 				try {
-					Copy-Item -Path $JunctionPath\* -Destination "$JunctionTarget" -Force -Recurse -Verbose
-					Remove-Item -Path "$JunctionPath" -Recurse -Force -Verbose
+					Copy-Item -Path $SymbolicLinkPath\* -Destination "$SymbolicLinkTarget" -Force -Recurse -Verbose
+					Remove-Item -Path "$SymbolicLinkPath" -Recurse -Force -Verbose
 				} catch {
 					break
 				}
 			} else {
-				Move-Item -Path "$JunctionPath" -Destination "$JunctionTarget" -Force -Verbose
+				Move-Item -Path "$SymbolicLinkPath" -Destination "$SymbolicLinkTarget" -Force -Verbose
 			}
 		}
 		try {
-			junction $JunctionPath $JunctionTarget
+			junction $SymbolicLinkPath $SymbolicLinkTarget
 		} catch {
-			New-Item -Path "$JunctionPath" -Type Junction -Target "$JunctionTarget" -Force -Verbose
+			New-Item -Path "$SymbolicLinkPath" -Type SymbolicLink -Target "$SymbolicLinkTarget" -Force -Verbose
 		}
 	}
 }
 
-Function CreateCustomJunctionsInProgramFiles {
+Function CreateCustomSymbolicLinksInProgramFiles {
 	if (Test-Path "D:\") {
 		do {
 			Clear-Host
-			Write-Host "================ Do You Want to Create Junctions in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
+			Write-Host "================ Do You Want to Create SymbolicLinks in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
 			Write-Host "Y: Press 'Y' to do this."
 			if ($ConfirmAll) {
 				$selection = 'y'
@@ -403,14 +403,14 @@ Function CreateCustomJunctionsInProgramFiles {
 						Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
 						choco install junction -y -ErrorAction SilentlyContinue
 					}
-					Write-Host "Creating Custom Junctions in" $env:ProgramFiles "..."
+					Write-Host "Creating Custom SymbolicLinks in" $env:ProgramFiles "..."
 					$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
-					$JunctionNames = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
+					$SymbolicLinkNames = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
 					foreach ($ProgramFiles in $ProgramFilesLocations) {
-						foreach ($FolderName in $JunctionNames) {
-							$JunctionPath = $ProgramFiles + "\" + $FolderName
-							$JunctionTarget = "D:\" + $FolderName
-							CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
+						foreach ($FolderName in $SymbolicLinkNames) {
+							$SymbolicLinkPath = $ProgramFiles + "\" + $FolderName
+							$SymbolicLinkTarget = "D:\" + $FolderName
+							CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
 						}
 					}
 				}
@@ -422,11 +422,11 @@ Function CreateCustomJunctionsInProgramFiles {
 	}
 }
 
-Function CreateCustomJunctionsInAppData {
+Function CreateCustomSymbolicLinksInAppData {
 	if (Test-Path "D:\") {
 		do {
 			Clear-Host
-			Write-Host "================ Do You Want to Create Junctions in '" $env:APPDATA "' to Custom Install Locations on 'D:\' ? ================"
+			Write-Host "================ Do You Want to Create SymbolicLinks in '" $env:APPDATA "' to Custom Install Locations on 'D:\' ? ================"
 			Write-Host "Y: Press 'Y' to do this."
 			if ($ConfirmAll) {
 				$selection = 'y'
@@ -437,16 +437,11 @@ Function CreateCustomJunctionsInAppData {
 			}
 			switch ($selection) {
 				'y' {
-					if (-Not(Get-Command junction -ErrorAction SilentlyContinue)) {
-						Write-Warning "Command 'junction' was not found"
-						Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
-						choco install junction -y -ErrorAction SilentlyContinue
-					}
-					Write-Host "Creating Custom Junctions in" $env:APPDATA "..."
+					Write-Host "Creating Custom SymbolicLinks in" $env:APPDATA "..."
 					foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
-						$JunctionPath = $env:APPDATA + "\" + $FolderName
-						$JunctionTarget = "D:\" + $FolderName
-						CreateJunctionNoClobber -JunctionPath $JunctionPath -JunctionTarget $JunctionTarget
+						$SymbolicLinkPath = $env:APPDATA + "\" + $FolderName
+						$SymbolicLinkTarget = "D:\" + $FolderName
+						CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
 					}
 				}
 				'n' { Break }
@@ -455,6 +450,42 @@ Function CreateCustomJunctionsInAppData {
 		}
 		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 	}
+}
+
+Function CreateSymbloicLinksToServerShares {
+
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Create SymbolicLinks in '" $HOME "' to Custom Install Locations on a Samba server share? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
+			switch ($selection) {
+				'y' {
+					# TODO: Prompt user for the name of the hostname or domain name of the file server \\HOME-SERVER\ or \\files.someplace.net\
+					# Then prompt for the name of the share (i.e. media in this case)
+					$ServerName = "GRIFFINUNRAID"
+					$MediaShare = "media"
+					$ServerPath = "\\" + $ServerName + "\" + $MediaShare
+					if (Test-Path "$ServerPath") {
+						Write-Host "Creating Custom SymbolicLinks in" $HOME "..."
+					foreach ($FolderName in @("Music", "Pictures", "Videos")) {
+						$SymbolicLinkPath = $HOME + "\" + $FolderName
+						$SymbolicLinkTarget = $ServerPath + $FolderName
+						CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
+					}
+				}
+				}
+				'n' { Break }
+				'q' { Exit }
+			}
+		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 
 Function InstallPresetFromJson {
