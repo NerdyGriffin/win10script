@@ -760,13 +760,15 @@
                 "patch",
                 "StrawberryPerl",
                 "universal-ctags",
+                "vscode",
                 "winmerge"
             ],
             "description": "A basic development environment.",
             "group": "Development Tools",
             "mandatory-packages": [
-                "llvm",
+                "editor-services-command-suite",
                 "gnuwin",
+                "llvm",
                 "make",
                 "mingw",
                 "pkgconfiglite",

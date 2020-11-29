@@ -47,15 +47,17 @@ $tweaks = @(
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
-	"InstallOpenSSHServer",
-	"CreateCustomSymbolicLinksInProgramFiles", # Intended for use with SSD as C:\ and HDD as D:\
-	"CreateCustomSymbolicLinksInAppData",
-	"InstallGriffinProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
-	"CustomPowerShellWithPowerLine",
-	"AddPowerShellToContextMenu",
+	"InstallPowerlineInPowerShell",
+	"SetupPSReadlineForPowerShell", # Sets PSReadline to emulate Bash-like behavior
 	"SchedulePowerShellUpdateHelp",
+	"AddPowerShellToContextMenu",
 	"InstallIconExportPowerShell",
-	"CustomWindowsTerminalSettings",
+	# "CreateSymbolicLinksToServerShares",
+	"CreateSymbolicLinksForAppData",
+	"CreateSymbolicLinksForProgramFiles", # Intended to accomodate distribution of storage space with SSD as C:\ and HDD as D:\
+	"InstallOpenSSHServer",
+	"InstallGriffinProgs",
+	"InstallCustomWindowsTerminalSettings",
 
 	### Windows Apps
 	# "DebloatAll",
@@ -106,7 +108,7 @@ $tweaks = @(
 	# "DisableUpdateRestart", # "EnableUpdateRestart",
 	# "DisableHomeGroups", # "EnableHomeGroups",
 	# "DisableSharedExperiences", # "EnableSharedExperiences",
-	"DisableRemoteAssistance", # "EnableRemoteAssistance",
+	# "DisableRemoteAssistance", # "EnableRemoteAssistance",
 	"EnableRemoteDesktop", # "DisableRemoteDesktop",
 	"DisableAutoplay", # "EnableAutoplay",
 	"DisableAutorun", # "EnableAutorun",
@@ -322,6 +324,91 @@ Function ChangeDefaultApps {
 
 $PSScriptRoot
 
+Function InstallPowerlineInPowerShell {
+	Clear-Host
+	try {
+		Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
+		Install-Module posh-git -Scope CurrentUser -ErrorAction Stop
+		Install-Module oh-my-posh -Scope CurrentUser -ErrorAction Stop
+	} catch {
+		Wrote-Error "Something when wrong while trying to install Posh-Git and/or Oh-My-Posh"
+		Start-Sleep -Seconds 4
+	}
+	try {
+		Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
+		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction Stop
+	} catch {
+		Wrote-Error "Something when wrong while trying to install PSReadLine"
+		Start-Sleep -Seconds 4
+	}
+	Write-Host "Adding Modules for Powerline to PowerShell Profile..."
+	$PowerlineProfile = @(
+		"# Dependencies for powerline",
+		"Import-Module posh-git",
+		"Import-Module oh-my-posh",
+		"Set-Theme Paradox"
+	)
+	foreach ($ProfileString in $PowerlineProfile) {
+		if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
+			Add-Content -Path $PROFILE -Value $ProfileString
+		}
+	}
+}
+
+Function SetupPSReadlineForPowerShell {
+	if (-Not(Get-Module -ListAvailable -Name PSReadLine)) {
+		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
+	}
+	$PSReadlineProfile = @(
+		"Import-Module PSReadLine",
+		"Set-PSReadLineOption -EditMode Emacs -HistoryNoDuplicates -HistorySearchCursorMovesToEnd",
+		"Set-PSReadLineOption -BellStyle Audible -DingTone 512",
+		"# Creates an alias for ls like I use in Bash",
+		"Set-Alias -Name v -Value Get-ChildItem"
+	)
+	foreach ($ProfileString in $PSReadlineProfile) {
+		if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
+			Add-Content -Path $PROFILE -Value $ProfileString
+		}
+	}
+}
+
+Function SchedulePowerShellUpdateHelp {
+	Clear-Host
+	Write-Host "Checking for UpdateHelpJob..."
+	if (Get-ScheduledJob UpdateHelpJob -ErrorAction SilentlyContinue) {
+		Write-Host "UpdateHelpJob is already set" -ForegroundColor Green
+	} else {
+		do {
+			Write-Host "================ Do You Want to Schedule a Job That Runs an `Update-Help` Command? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
+			switch ($selection) {
+				'y' {
+					Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
+					$Trigger = New-JobTrigger -Daily -At "3 AM"
+					Register-ScheduledJob -Name "UpdateHelpJob" -ScriptBlock { Update-Help } -Trigger $Trigger
+					Start-Sleep -Seconds 4
+				}
+				'n' { Break }
+				'q' { Exit }
+				default {
+					Clear-Host
+					Write-Host "Invalid input"
+					Write-Host
+				}
+			}
+		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+}
+
 Function AddPowerShellToContextMenu {
 	$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
 	if (Test-Path "$PowerShellContextMenuReg") {
@@ -345,7 +432,13 @@ Function AddPowerShellToContextMenu {
 	Start-Sleep -Seconds 4
 }
 
-Function CreateSymbolicLinkNoClobber {
+Function InstallIconExportPowerShell {
+	Clear-Host
+	Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
+	Install-Module IconExport -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
+}
+
+Function CreateSymbolicLinkWithBackup {
 	param(
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
@@ -356,38 +449,41 @@ Function CreateSymbolicLinkNoClobber {
 		[string]$SymbolicLinkTarget
 	)
 
-	try {
-		try {
-			junction $SymbolicLinkPath $SymbolicLinkTarget
-		} catch {
-			New-Item -Path "$SymbolicLinkPath" -Type SymbolicLink -Target "$SymbolicLinkTarget" -Force -Verbose
-		}
-	} catch {
-		if ((Test-Path $SymbolicLinkPath) -and ($SymbolicLinkPath -NotMatch $env:ProgramFiles) -and ($SymbolicLinkPath -NotMatch ${env:ProgramFiles(x86)})) {
-			if ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
-				try {
-					Copy-Item -Path $SymbolicLinkPath\* -Destination "$SymbolicLinkTarget" -Force -Recurse -Verbose
-					Remove-Item -Path "$SymbolicLinkPath" -Recurse -Force -Verbose
-				} catch {
-					break
-				}
-			} else {
-				Move-Item -Path "$SymbolicLinkPath" -Destination "$SymbolicLinkTarget" -Force -Verbose
+	# if ((Test-Path $SymbolicLinkPath) -and ($SymbolicLinkPath -NotMatch $env:ProgramFiles) -and ($SymbolicLinkPath -NotMatch ${env:ProgramFiles(x86)})) {
+	if (Test-Path $SymbolicLinkPath) {
+		if (Get-Item $SymbolicLinkPath | Where-Object Attributes -Match ReparsePoint) {
+			Write-Host "'" $SymblicLinkPath "' is already a link" -ForegroundColor Magenta
+		} elseif (Test-Path $SymbolicLinkTarget) {
+		# } elseif ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
+			try {
+				Copy-Item -Path $SymbolicLinkPath\* -Destination "$SymbolicLinkTarget" -Force -Recurse -Verbose -ErrorAction Stop
+				Remove-Item -Path "$SymbolicLinkPath" -Recurse -Force -Verbose -ErrorAction Stop
+			} catch {
+				Write-Error "Something went wrong while trying to copy the contents of '" $SymbolicLinkPath "' to '" $SymbolicLinkTarget "'"
+				Break
+			}
+		} else {
+			try {
+				Move-Item -Path "$SymbolicLinkPath" -Destination "$SymbolicLinkTarget" -Force -Verbose -ErrorAction Stop
+			} catch {
+				Write-Error "Something went wrong while trying to move '" $SymbolicLinkPath "' to '" $SymbolicLinkTarget "'"
+				Break
 			}
 		}
-		try {
-			junction $SymbolicLinkPath $SymbolicLinkTarget
-		} catch {
-			New-Item -Path "$SymbolicLinkPath" -Type SymbolicLink -Target "$SymbolicLinkTarget" -Force -Verbose
-		}
 	}
+	if (-Not(Test-Path $SymbolicLinkTarget)) {
+		New-Item -Path "$SymbolicLinkTarget" -Type Directory -Verbose
+	}
+	New-Item -Path "$SymbolicLinkPath" -Type SymbolicLink -Target "$SymbolicLinkTarget" -Force -Verbose
 }
 
-Function CreateCustomSymbolicLinksInProgramFiles {
-	if (Test-Path "D:\") {
+# Not yet implemented
+Function CreateSymbolicLinksToServerShares {
+	# Forced to false since function is not yet implemented.
+	If ($False -And ((Get-WmiObject -Class "Win32_ComputerSystem").Manufacturer -Contains "QEMU") -And (Get-ComputerName | Select-String "DESKTOP")) {
 		do {
 			Clear-Host
-			Write-Host "================ Do You Want to Create SymbolicLinks in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
+			Write-Host "================ Do You Want to Create SymbolicLinks in '" $HOME "' to Custom Media Locations on a Server Share? ================"
 			Write-Host "Y: Press 'Y' to do this."
 			if ($ConfirmAll) {
 				$selection = 'y'
@@ -398,19 +494,17 @@ Function CreateCustomSymbolicLinksInProgramFiles {
 			}
 			switch ($selection) {
 				'y' {
-					if (-Not(Get-Command junction -ErrorAction SilentlyContinue)) {
-						Write-Warning "Command 'junction' was not found"
-						Write-Host "Installing 'junction' via Chocolatey..." -ForegroundColor Cyan
-						choco install junction -y -ErrorAction SilentlyContinue
-					}
-					Write-Host "Creating Custom SymbolicLinks in" $env:ProgramFiles "..."
-					$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
-					$SymbolicLinkNames = @( "Cave Story Deluxe", "Cemu Emulator", "Dolphin", "Epic Games", "GOG Galaxy", "MATLAB". "Origin", "Rockstar Games", "Steam", "Ubisoft")
-					foreach ($ProgramFiles in $ProgramFilesLocations) {
-						foreach ($FolderName in $SymbolicLinkNames) {
-							$SymbolicLinkPath = $ProgramFiles + "\" + $FolderName
-							$SymbolicLinkTarget = "D:\" + $FolderName
-							CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
+					# TODO: Prompt user for the name of the hostname or domain name of the file server \\HOME-SERVER\ or \\files.someplace.net\
+					# Then prompt for the name of the share (i.e. media in this case)
+					$ServerName = "GRIFFINUNRAID"
+					$MediaShare = "media"
+					$ServerPath = "\\" + $ServerName + "\" + $MediaShare
+					if (Test-Path "$ServerPath") {
+						Write-Host "Creating Custom SymbolicLinks in" $HOME "..."
+						foreach ($FolderName in @("Music", "Pictures", "Videos")) {
+							$SymbolicLinkPath = $HOME + "\" + $FolderName
+							$SymbolicLinkTarget = $ServerPath + $FolderName
+							CreateSymbolicLinkWithBackup -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
 						}
 					}
 				}
@@ -422,7 +516,7 @@ Function CreateCustomSymbolicLinksInProgramFiles {
 	}
 }
 
-Function CreateCustomSymbolicLinksInAppData {
+Function CreateSymbolicLinksForAppData {
 	if (Test-Path "D:\") {
 		do {
 			Clear-Host
@@ -441,7 +535,7 @@ Function CreateCustomSymbolicLinksInAppData {
 					foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
 						$SymbolicLinkPath = $env:APPDATA + "\" + $FolderName
 						$SymbolicLinkTarget = "D:\" + $FolderName
-						CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
+						CreateSymbolicLinkWithBackup -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
 					}
 				}
 				'n' { Break }
@@ -449,14 +543,66 @@ Function CreateCustomSymbolicLinksInAppData {
 			}
 		}
 		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	} else {
+		Clear-Host
+		Write-Host "Drive D:\ not found, skipping CreateSymbolicLinksForAppData..."
+		Start-Sleep -Seconds 4
 	}
 }
 
-Function CreateSymbloicLinksToServerShares {
+Function CreateSymbolicLinksForProgramFiles {
+	if (Test-Path "D:\") {
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Create SymbolicLinks in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
+			switch ($selection) {
+				'y' {
+					Write-Host "Creating Custom SymbolicLinks in" $env:ProgramFiles "..."
+					$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
+					$SymbolicLinkNames = @(
+						"Cave Story Deluxe",
+						"Cemu Emulator",
+						"Dolphin",
+						"Epic Games",
+						"GOG Galaxy",
+						"MATLAB",
+						"Origin",
+						"Rockstar Games",
+						"Steam",
+						"Ubisoft"
+					)
+					foreach ($ProgramFiles in $ProgramFilesLocations) {
+						foreach ($FolderName in $SymbolicLinkNames) {
+							$SymbolicLinkPath = $ProgramFiles + "\" + $FolderName
+							$SymbolicLinkTarget = "D:\" + $FolderName
+							CreateSymbolicLinkWithBackup -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
+						}
+					}
+				}
+				'n' { Break }
+				'q' { Exit }
+			}
+		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	} else {
+		Clear-Host
+		Write-Host "Drive D:\ not found, skipping CreateSymbolicLinksForProgramFiles..."
+		Start-Sleep -Seconds 4
+	}
+}
 
+Function InstallOpenSSHServer {
 	do {
 		Clear-Host
-		Write-Host "================ Do You Want to Create SymbolicLinks in '" $HOME "' to Custom Install Locations on a Samba server share? ================"
+		Write-Host "================ Do You Want to Install OpenSSH Server? ================"
 		Write-Host "Y: Press 'Y' to do this."
 		if ($ConfirmAll) {
 			$selection = 'y'
@@ -467,19 +613,39 @@ Function CreateSymbloicLinksToServerShares {
 		}
 		switch ($selection) {
 			'y' {
-				# TODO: Prompt user for the name of the hostname or domain name of the file server \\HOME-SERVER\ or \\files.someplace.net\
-				# Then prompt for the name of the share (i.e. media in this case)
-				$ServerName = "GRIFFINUNRAID"
-				$MediaShare = "media"
-				$ServerPath = "\\" + $ServerName + "\" + $MediaShare
-				if (Test-Path "$ServerPath") {
-					Write-Host "Creating Custom SymbolicLinks in" $HOME "..."
-					foreach ($FolderName in @("Music", "Pictures", "Videos")) {
-						$SymbolicLinkPath = $HOME + "\" + $FolderName
-						$SymbolicLinkTarget = $ServerPath + $FolderName
-						CreateSymbolicLinkNoClobber -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
-					}
+				Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
+				# Install the OpenSSH Client
+				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+				Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
+				# Install the OpenSSH Server
+				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+				Write-Host 'Starting sshd service' -ForegroundColor Cyan
+				Start-Service sshd;
+				Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
+				Start-Service ssh-agent;
+				Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
+				Set-Service sshd -StartupType Automatic;
+				Set-Service ssh-agent -StartupType Automatic;
+				Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
+				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
+				# If the firewall does not exist, create one
+				if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
+					Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
+					New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
 				}
+				Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
+				This should return a status of Running
+				Get-Service ssh-agent
+				if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
+					Start-Service ssh-agent
+				}
+				# Set the default shell to be PowerShell.exe
+				Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
+				New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+				Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
+				choco install ssh-copy-id -y
+				Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
+				Start-Sleep -Seconds 4
 			}
 			'n' { Break }
 			'q' { Exit }
@@ -622,32 +788,7 @@ Function InstallGriffinProgs {
 	Show-Json-Menu -Title "Select Preset to load from JSON"
 }
 
-Function InstallPowerShellPackageManagement {
-	powershell.exe -NoLogo -NoProfile -Command 'Install-Module -Name PackageManagement -Force -MinimumVersion 1.4.6 -Scope CurrentUser -AllowClobber'
-	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-}
-
-Function CustomPowerShellWithPowerLine {
-	Clear-Host
-	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
-	Install-Module posh-git -Scope CurrentUser -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-	Install-Module oh-my-posh -Scope CurrentUser -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-	Write-Host "Installing PSReadLine -- [Dependency for Powerline and allows bash-like terminal features"
-	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-	Write-Host "Copying custom powershell profile..."
-	$BackupPowerShellProfilePath = $PSScriptRoot + "\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
-	if (Test-Path "$BackupPowerShellProfilePath") {
-		Copy-Item "$BackupPowerShellProfilePath" "$PROFILE.AllUsersAllHosts";	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-	}
-}
-
-Function InstallIconExportPowerShell {
-	Clear-Host
-	Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
-	Install-Module IconExport -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-}
-
-Function CustomWindowsTerminalSettings {
+Function InstallCustomWindowsTerminalSettings {
 	Clear-Host
 	# Copy over my custom Windows Terminal settings
 	$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
@@ -656,91 +797,6 @@ Function CustomWindowsTerminalSettings {
 		Write-Host "Copying custom Windows Terminal config..."
 		Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath";	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
 	}
-}
-
-Function SchedulePowerShellUpdateHelp {
-	try {
-		Get-ScheduledJob UpdateHelpJob
-	} catch {
-		do {
-			Clear-Host
-			Write-Host "================ Do You Want to Schedule a Job That Runs an `Update-Help` Command? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
-					$Trigger = New-JobTrigger -Daily -At "3 AM"
-					Register-ScheduledJob -Name "UpdateHelpJob" -ScriptBlock { Update-Help } -Trigger $Trigger
-					Start-Sleep -Seconds 4
-				}
-				'n' { Break }
-				'q' { Exit }
-			}
-		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	}
-}
-
-Function InstallOpenSSHServer {
-	do {
-		Clear-Host
-		Write-Host "================ Do You Want to Install OpenSSH Server? ================"
-		Write-Host "Y: Press 'Y' to do this."
-		if ($ConfirmAll) {
-			$selection = 'y'
-		} else {
-			Write-Host "N: Press 'N' to skip this."
-			Write-Host "Q: Press 'Q' to stop the entire script."
-			$selection = Read-Host "Please make a selection"
-		}
-		switch ($selection) {
-			'y' {
-				Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
-				# Install the OpenSSH Client
-				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
-				Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
-				# Install the OpenSSH Server
-				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
-				Write-Host 'Starting sshd service' -ForegroundColor Cyan
-				Start-Service sshd;
-				Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
-				Start-Service ssh-agent;
-				Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
-				Set-Service sshd -StartupType Automatic;
-				Set-Service ssh-agent -StartupType Automatic;
-				Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
-				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
-				# If the firewall does not exist, create one
-				if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
-					Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
-					New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
-				}
-				Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
-				This should return a status of Running
-				Get-Service ssh-agent
-				if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
-					Start-Service ssh-agent
-				}
-				# Set the default shell to be PowerShell.exe
-				Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
-				New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
-				Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
-				choco install ssh-copy-id -y
-				Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
-				Start-Sleep -Seconds 4
-			}
-			'n' { Break }
-			'q' { Exit }
-		}
-	}
-	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 
 ##########
