@@ -22,11 +22,18 @@
 #	- Changed Default Apps to Notepad++, Brave, Irfanview, and more using XML Import feature
 #
 ##########
+# Optional parameter to override all user input prompts with 'yes'
+param(
+	[Parameter(Mandatory = $false)]
+	[Switch]$ConfirmAll
+)
+
 # Default preset
 $tweaks = @(
 	### Require administrator privileges ###
 	"RequireAdmin",
 	"CreateRestorePoint",
+	"CreatePSDriveHKCR",
 
 	### Chris Titus Tech Additions
 	"TitusRegistryTweaks",
@@ -201,20 +208,24 @@ function Show-Choco-Menu {
 		[string]$ChocoInstall
 	)
 
- do {
+	do {
 		Clear-Host
 		Write-Host "================ $Title ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "2: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' { choco install $ChocoInstall -y }
 			'n' { Break }
 			'q' { Exit }
 		}
- }
- until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 
 Function TitusRegistryTweaks {
@@ -252,9 +263,13 @@ Function InstallBrave {
 		Clear-Host
 		Write-Host "================ Do You Want to Install Brave Browser? ================"
 		Write-Host "Y: Press 'Y' to do this."
-		Write-Host "2: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
+		if ($ConfirmAll) {
+			$selection = 'y'
+		} else {
+			Write-Host "N: Press 'N' to skip this."
+			Write-Host "Q: Press 'Q' to stop the entire script."
+			$selection = Read-Host "Please make a selection"
+		}
 		switch ($selection) {
 			'y' {
 				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
@@ -263,9 +278,8 @@ Function InstallBrave {
 			'n' { Break }
 			'q' { Exit }
 		}
- }
- until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-
+	}
+	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 }
 Function Install7Zip {
 	Show-Choco-Menu -Title "Do you want to install 7-Zip?" -ChocoInstall "7zip"
@@ -2542,6 +2556,9 @@ Function Stop-EdgePDF {
 
 	#Stops edge from taking over as the default .PDF viewer
 	Write-Output "Stopping Edge from taking over as the default .PDF viewer"
+	If (!(Test-Path "HKCR:")) {
+		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+	}
 	$NoPDF = "HKCR:\.pdf"
 	$NoProgids = "HKCR:\.pdf\OpenWithProgids"
 	$NoWithList = "HKCR:\.pdf\OpenWithList"
@@ -2575,6 +2592,12 @@ Function CreateRestorePoint {
 	Write-Output "Creating Restore Point incase something bad happens"
 	Enable-ComputerRestore -Drive "C:\"
 	Checkpoint-Computer -Description "RestorePoint1" -RestorePointType "MODIFY_SETTINGS"
+}
+
+Function CreatePSDriveHKCR {
+	If (!(Test-Path "HKCR:")) {
+		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+	}
 }
 
 Function DebloatAll {
