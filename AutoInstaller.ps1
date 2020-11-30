@@ -47,6 +47,7 @@ $tweaks = @(
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
+	"InstallPipeworks",
 	"InstallPowerlineInPowerShell",
 	"SetupPSReadlineForPowerShell", # Sets PSReadline to emulate Bash-like behavior
 	"SchedulePowerShellUpdateHelp",
@@ -324,6 +325,21 @@ Function ChangeDefaultApps {
 
 $PSScriptRoot
 
+Function InstallPipeworks {
+	Clear-Host
+	try {
+		Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
+		Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
+		Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction Stop
+	} catch {
+		Wrote-Error "Something when wrong while trying to install Pipeworks"
+		Start-Sleep -Seconds 4
+	}
+	if (Get-Command -Name RefreshEnv -ErrorAction SilentlyContinue) {
+		RefreshEnv
+	}
+}
+
 Function InstallPowerlineInPowerShell {
 	Clear-Host
 	try {
@@ -454,7 +470,7 @@ Function CreateSymbolicLinkWithBackup {
 		if (Get-Item $SymbolicLinkPath | Where-Object Attributes -Match ReparsePoint) {
 			Write-Host "'" $SymblicLinkPath "' is already a link" -ForegroundColor Magenta
 		} elseif (Test-Path $SymbolicLinkTarget) {
-		# } elseif ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
+			# } elseif ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
 			try {
 				Copy-Item -Path $SymbolicLinkPath\* -Destination "$SymbolicLinkTarget" -Force -Recurse -Verbose -ErrorAction Stop
 				Remove-Item -Path "$SymbolicLinkPath" -Recurse -Force -Verbose -ErrorAction Stop
