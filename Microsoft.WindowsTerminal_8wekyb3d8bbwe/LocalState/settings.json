@@ -42,12 +42,12 @@
             {
                 "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
                 "hidden": false,
-                "name": "Ubuntu",
+                "name": "Ubuntu WSL",
                 "source": "Windows.Terminal.Wsl",
-                "icon": "B:\\icons\\store\\ubuntu-logo32.png",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\ubuntu-logo32.png",
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\ubuntu-logo32.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\ubuntu-logo32.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
                 "colorScheme": "Ubuntu",
@@ -58,11 +58,11 @@
             {
                 "name": "tali.nerdygriffin.net",
                 "commandline": "ssh tali.nerdygriffin.net",
-                "icon": "B:\\icons\\store\\ubuntu-logo32.png",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\ubuntu-logo32.png",
                 "hidden": false,
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\ubuntu-logo32.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\ubuntu-logo32.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
                 "colorScheme": "Ubuntu",
@@ -73,41 +73,40 @@
             {
                 "name": "zaeed.home",
                 "commandline": "ssh zaeed.home",
-                "icon": "B:\\icons\\store\\centos.png",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\centos.png",
                 "hidden": false,
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\centos.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\centos.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
-                // "colorScheme": "Ubuntu",
-                // "cursorColor": "#CFF5DB",
+                "colorScheme": "Tango Dark",
                 "fontFace": "Cascadia Code PL",
                 "useAcrylic": true
             },
             {
                 "name": "legion.home",
                 "commandline": "ssh legion.home",
-                "icon": "B:\\icons\\store\\manjaro_green.png",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\manjaro_green.png",
                 "hidden": false,
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\manjaro_green.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\manjaro_green.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
                 // "colorScheme": "Manjaro",
-                // "cursorColor": "#CFF5DB",
+                "colorScheme": "Tango Dark",
                 "fontFace": "Cascadia Code PL",
                 "useAcrylic": true
             },
             {
-                "name": "DESKTOP-GRIFFIN",
-                "commandline": "ssh windows.pro",
-                "icon": "B:\\icons\\store\\powershell-0.png",
+                "name": "DESKTOP-GRIFFIN.home",
+                "commandline": "ssh windows.home",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\powershell-0.png",
                 "hidden": false,
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\powershell-0.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\powershell-0.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
                 "colorScheme": "Campbell",
@@ -118,10 +117,10 @@
             {
                 "name": "GriffinUnraid",
                 "commandline": "ssh nerdygriffin@host.home",
-                "icon": "B:\\icons\\store\\unraid.png",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\unraid.png",
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\unraid.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\unraid.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
                 "colorScheme": "Tango Dark",
@@ -132,15 +131,15 @@
             {
                 "name": "360ApiTrain.Gordon SSH Tunnel",
                 "commandline": "ssh -L 33389:cs-rdsh-02.gordon.edu:3389 -L 2550:cs-rdsh-02.gordon.edu:2550 -L 5555:cs-rdsh-02.gordon.edu:5555 nabi.cs.gordon.edu",
-                "icon": "B:\\icons\\store\\ubuntu-logo32.png",
+                "icon": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\GordonCollege_logo_center_White.png",
                 "hidden": false,
                 // Visual styling
                 "acrylicOpacity": 0.7,
-                "backgroundImage": "B:\\icons\\store\\ubuntu-logo32.png",
+                "backgroundImage": "\\\\GRIFFINUNRAID\\backup\\icons\\store\\GordonCollege_logo_center_White.png",
                 "backgroundImageStretchMode": "uniform",
                 "backgroundImageOpacity": 0.2,
-                "colorScheme": "Ubuntu",
-                "cursorColor": "#CFF5DB",
+                "colorScheme": "Gordon College",
+                "cursorColor": "#EBEAEA",
                 "fontFace": "Cascadia Code PL",
                 "useAcrylic": true
             },
@@ -201,7 +200,7 @@
         },
         {
             "name": "Manjaro",
-            "background": "#080",
+            "background": "#080"
             // "black": "#282A2E",
             // "blue": "#0170C5",
             // "brightBlack": "#676E7A",
@@ -219,6 +218,27 @@
             // "red": "#BD0940",
             // "white": "#FFFFFD",
             // "yellow": "#E0DE48"
+        },
+        {
+            "name": "Gordon College",
+            "background": "#081F2C",
+            "black": "#081F2C",
+            "blue": "#014983",
+            "brightBlack": "#31342B",
+            "brightBlue": "#84c8ff",
+            "brightCyan": "#00FFFF",
+            "brightGreen": "#8EFF16",
+            "brightPurple": "#FF00FF",
+            "brightRed": "#DE571F",
+            "brightWhite": "#FFFFFD",
+            "brightYellow": "#FFFF00",
+            "cyan": "#00AEEF",
+            "foreground": "#CCCCCB",
+            "green": "#B2BB1C",
+            "purple": "#7D498F",
+            "red": "#B53228",
+            "white": "#CCCCCB",
+            "yellow": "#FDB913"
         },
         {
             "name": "Retro",
