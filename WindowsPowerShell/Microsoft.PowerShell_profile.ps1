@@ -1,12 +1,12 @@
 # Bash-like terminal features and optional Powerline dependency
 Import-Module PSReadLine
 $PSReadLineOptions = @{
-    EditMode                      = "Emacs"
-    HistoryNoDuplicates           = $true
-    HistorySearchCursorMovesToEnd = $true
-    BellStyle                     = "Audible"
-    # DingDuration = 64
-    DingTone                      = 512
+	EditMode                      = "Emacs"
+	HistoryNoDuplicates           = $true
+	HistorySearchCursorMovesToEnd = $true
+	BellStyle                     = "Audible"
+	# DingDuration = 64
+	DingTone                      = 512
 }
 Set-PSReadLineOption @PSReadLineOptions
 # Creates an alias for ls like I use in Bash
