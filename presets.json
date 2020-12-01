@@ -127,7 +127,6 @@
                 "junction",
                 "microsoft-windows-terminal",
                 "rsync",
-                "terminal-icons.powershell",
                 "winscreenfetch"
             ]
         },
@@ -987,9 +986,7 @@
         },
         {
             "name": "Command Line Programs",
-            "packages": [
-                "terminal-icons.powershell"
-            ]
+            "packages": []
         },
         {
             "name": "Development Tools",
