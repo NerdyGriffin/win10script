@@ -332,7 +332,7 @@ Function InstallPipeworks {
 		Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
 		Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction Stop
 	} catch {
-		Wrote-Error "Something when wrong while trying to install Pipeworks"
+		Write-Warning "Something when wrong while trying to install Pipeworks"
 		Start-Sleep -Seconds 4
 	}
 	if (Get-Command -Name RefreshEnv -ErrorAction SilentlyContinue) {
@@ -347,14 +347,14 @@ Function InstallPowerlineInPowerShell {
 		Install-Module posh-git -Scope CurrentUser -ErrorAction Stop
 		Install-Module oh-my-posh -Scope CurrentUser -ErrorAction Stop
 	} catch {
-		Wrote-Error "Something when wrong while trying to install Posh-Git and/or Oh-My-Posh"
+		Write-Warning "Something when wrong while trying to install Posh-Git and/or Oh-My-Posh"
 		Start-Sleep -Seconds 4
 	}
 	try {
 		Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
 		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction Stop
 	} catch {
-		Wrote-Error "Something when wrong while trying to install PSReadLine"
+		Write-Warning "Something when wrong while trying to install PSReadLine"
 		Start-Sleep -Seconds 4
 	}
 	Write-Host "Adding Modules for Powerline to PowerShell Profile..."
@@ -468,7 +468,7 @@ Function CreateSymbolicLinkWithBackup {
 	# if ((Test-Path $SymbolicLinkPath) -and ($SymbolicLinkPath -NotMatch $env:ProgramFiles) -and ($SymbolicLinkPath -NotMatch ${env:ProgramFiles(x86)})) {
 	if (Test-Path $SymbolicLinkPath) {
 		if (Get-Item $SymbolicLinkPath | Where-Object Attributes -Match ReparsePoint) {
-			Write-Host "'" $SymblicLinkPath "' is already a link" -ForegroundColor Magenta
+			Write-Host "'" $SymbolicLinkPath "' is already a link" -ForegroundColor Magenta
 		} elseif (Test-Path $SymbolicLinkTarget) {
 			# } elseif ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
 			try {
@@ -650,7 +650,7 @@ Function InstallOpenSSHServer {
 					New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
 				}
 				Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
-				This should return a status of Running
+				# This should return a status of Running
 				Get-Service ssh-agent
 				if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
 					Start-Service ssh-agent
@@ -746,7 +746,7 @@ Function InstallPresetFromJson {
 					Clear-Host
 					Write-Host "================ Installing "$Package.PackageName" ================" -ForegroundColor Yellow
 					if ($Package.Category -match "Chocolatey") {
-						choco upgrade $Package.PackageName -y --force
+						choco upgrade $Package.PackageName -yf
 					} else {
 						# 'choco upgrade' will upgrade the package if there is a new version available,
 						# or it will install the package if it is not already installed
