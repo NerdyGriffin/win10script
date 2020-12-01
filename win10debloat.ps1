@@ -52,12 +52,6 @@ $tweaks = @(
 	"SetupPSReadlineForPowerShell", # Sets PSReadline to emulate Bash-like behavior
 	"SchedulePowerShellUpdateHelp",
 	"AddPowerShellToContextMenu",
-	"InstallIconExportPowerShell",
-	# "CreateSymbolicLinksToServerShares",
-	"CreateSymbolicLinksForAppData",
-	"CreateSymbolicLinksForProgramFiles", # Intended to accomodate distribution of storage space with SSD as C:\ and HDD as D:\
-	"InstallOpenSSHServer",
-	# "InstallGriffinProgs",
 	"InstallCustomWindowsTerminalSettings",
 
 	### Windows Apps
@@ -290,7 +284,7 @@ Function InstallBrave {
 					Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
 					~/Downloads/brave.exe
 				} catch {
-					Start-Sleep -Seconds 4 
+					Start-Sleep -Seconds 4
 				}
 			}
 			'n' { Break }
@@ -407,63 +401,6 @@ Function AddPowerShellToContextMenu {
 		Set-Item -Path "HKCR:\Directory\shell\powershellmenu\command" -Value "C:\\\\Windows\\\\system32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe -NoExit -Command Set-Location -LiteralPath '%L'"
 	}
 	Start-Sleep -Seconds 4
-}
-
-Function InstallOpenSSHServer {
-	if (-Not(Get-ComputerName | Select-String "LAPTOP")) {
-		do {
-			Clear-Host
-			Write-Host "================ Do You Want to Install OpenSSH Server? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
-					# Install the OpenSSH Client
-					Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
-					Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
-					# Install the OpenSSH Server
-					Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
-					Write-Host 'Starting sshd service' -ForegroundColor Cyan
-					Start-Service sshd;
-					Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
-					Start-Service ssh-agent;
-					Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
-					Set-Service sshd -StartupType Automatic;
-					Set-Service ssh-agent -StartupType Automatic;
-					Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
-					# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
-					# If the firewall does not exist, create one
-					if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
-						Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
-						New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
-					}
-					Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
-					# This should return a status of Running
-					Get-Service ssh-agent
-					if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
-						Start-Service ssh-agent
-					}
-					# Set the default shell to be PowerShell.exe
-					Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
-					New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
-					Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
-					choco install ssh-copy-id -y
-					Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
-					Start-Sleep -Seconds 4
-				}
-				'n' { Break }
-				'q' { Exit }
-			}
-		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	}
 }
 
 Function InstallCustomWindowsTerminalSettings {
