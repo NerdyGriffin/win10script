@@ -40,14 +40,28 @@ $tweaks = @(
 	"InstallTitusProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	"Install7Zip",
 	"InstallNotepadplusplus",
-	"InstallIrfanview",
+	# "InstallIrfanview",
 	"InstallVLC",
 	"InstallAdobe",
 	"InstallBrave",
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
+	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
+	"InstallPipeworks",
+	"InstallPowerlineInPowerShell",
+	"SetupPSReadlineForPowerShell", # Sets PSReadline to emulate Bash-like behavior
+	"SchedulePowerShellUpdateHelp",
+	"AddPowerShellToContextMenu",
+	"InstallIconExportPowerShell",
+	# "CreateSymbolicLinksToServerShares",
+	"CreateSymbolicLinksForAppData",
+	"CreateSymbolicLinksForProgramFiles", # Intended to accomodate distribution of storage space with SSD as C:\ and HDD as D:\
+	"InstallOpenSSHServer",
+	# "InstallGriffinProgs",
+	"InstallCustomWindowsTerminalSettings",
+
 	### Windows Apps
-	"DebloatAll",
+	# "DebloatAll",
 
 	### Privacy Tweaks ###
 	"DisableTelemetry", # "EnableTelemetry",
@@ -56,7 +70,7 @@ $tweaks = @(
 	"DisableWebSearch", # "EnableWebSearch",
 	"DisableAppSuggestions", # "EnableAppSuggestions",
 	"DisableActivityHistory", # "EnableActivityHistory",
-	"DisableBackgroundApps", # "EnableBackgroundApps",
+	# "DisableBackgroundApps", # "EnableBackgroundApps",
 	"DisableLocationTracking", # "EnableLocationTracking",
 	"DisableMapUpdates", # "EnableMapUpdates",
 	"DisableFeedback", # "EnableFeedback",
@@ -76,7 +90,7 @@ $tweaks = @(
 	# "DisableSMBServer",           # "EnableSMBServer",
 	# "DisableLLMNR",               # "EnableLLMNR",
 	"SetCurrentNetworkPrivate", # "SetCurrentNetworkPublic",
-	"SetUnknownNetworksPrivate", # "SetUnknownNetworksPublic",
+	"SetUnknownNetworksPublic", # "SetUnknownNetworksPrivate",
 	"DisableNetDevicesAutoInst", # "EnableNetDevicesAutoInst",
 	"DisableCtrldFolderAccess",	# "EnableCtrldFolderAccess",
 	"EnableFirewall",
@@ -90,13 +104,13 @@ $tweaks = @(
 	"DisableMeltdownCompatFlag", # "EnableMeltdownCompatFlag"
 
 	### Service Tweaks ###
-	"DisableUpdateMSRT", # "EnableUpdateMSRT",
-	"DisableUpdateDriver", # "EnableUpdateDriver",
-	"DisableUpdateRestart", # "EnableUpdateRestart",
-	"DisableHomeGroups", # "EnableHomeGroups",
-	"DisableSharedExperiences", # "EnableSharedExperiences",
-	"DisableRemoteAssistance", # "EnableRemoteAssistance",
-	"EnableRemoteDesktop", # "DisableRemoteDesktop",
+	# "DisableUpdateMSRT", # "EnableUpdateMSRT",
+	# "DisableUpdateDriver", # "EnableUpdateDriver",
+	# "DisableUpdateRestart", # "EnableUpdateRestart",
+	# "DisableHomeGroups", # "EnableHomeGroups",
+	# "DisableSharedExperiences", # "EnableSharedExperiences",
+	# "DisableRemoteAssistance", # "EnableRemoteAssistance",
+	# "EnableRemoteDesktop", # "DisableRemoteDesktop",
 	"DisableAutoplay", # "EnableAutoplay",
 	"DisableAutorun", # "EnableAutorun",
 	"DisableStorageSense", # "EnableStorageSense",
@@ -104,13 +118,13 @@ $tweaks = @(
 	"DisableSuperfetch", # "EnableSuperfetch",
 	"EnableIndexing",
 	"SetBIOSTimeUTC", # "SetBIOSTimeLocal",
-	"DisableHibernation", # "EnableHibernation",          #
+	"EnableHibernation", # "DisableHibernation",          #
 	"EnableSleepButton", # "DisableSleepButton",
 	"DisableSleepTimeout", # "EnableSleepTimeout",
-	# "DisableFastStartup",         # "EnableFastStartup",
+	"DisableFastStartup", # "EnableFastStartup",
 
 	### UI Tweaks ###
-	"DisableActionCenter", # "EnableActionCenter",
+	# "DisableActionCenter", # "EnableActionCenter",
 	"EnableLockScreen", # "DisableLockScreen",
 	"EnableLockScreenRS1", # "DisableLockScreenRS1",
 	# "HideNetworkFromLockScreen",    # "ShowNetworkOnLockScreen",
@@ -121,40 +135,40 @@ $tweaks = @(
 	"DisableFileDeleteConfirm",	# "EnableFileDeleteConfirm",
 	"HideTaskbarSearch",
 	#"ShowTaskbarSearchIcon",      # "ShowTaskbarSearchBox",
-	"HideTaskView", # "ShowTaskView",
+	# "HideTaskView", # "ShowTaskView",
 	# "ShowSmallTaskbarIcons",        # "ShowLargeTaskbarIcons",
 	# "SetTaskbarCombineWhenFull",    # "SetTaskbarCombineNever",     # "SetTaskbarCombineAlways",
 	"HideTaskbarPeopleIcon", # "ShowTaskbarPeopleIcon",
-	"ShowTrayIcons", # "HideTrayIcons",
+	"HideTrayIcons", # "ShowTrayIcons",
 	"DisableSearchAppInStore", # "EnableSearchAppInStore",
 	"DisableNewAppPrompt", # "EnableNewAppPrompt",
 	# "SetControlPanelSmallIcons",  # "SetControlPanelLargeIcons",  # "SetControlPanelCategories",
-	# "SetVisualFXPerformance",     # "SetVisualFXAppearance",
+	"SetVisualFXAppearance", # "SetVisualFXPerformance",
 	# "AddENKeyboard",              # "RemoveENKeyboard",
 	"EnableNumlock", # "DisableNumlock",
 	"EnableDarkMode", # "DisableDarkMode",
 	"Stop-EdgePDF",
 
 	### Explorer UI Tweaks ###
-	"ShowKnownExtensions", # "HideKnownExtensions",
-	"HideHiddenFiles",
+	# "ShowKnownExtensions", # "HideKnownExtensions", # Handled by Boxstarter
+	# "ShowHiddenFiles", # "HideHiddenFiles", # Handled by Boxstarter
 	"HideSyncNotifications"         # "ShowSyncNotifications",
 	"HideRecentShortcuts", # "ShowRecentShortcuts",
 	"SetExplorerThisPC", # "SetExplorerQuickAccess",
-	"HideThisPCFromDesktop",	# "ShowThisPCOnDesktop",
-	# "ShowUserFolderOnDesktop",    # "HideUserFolderFromDesktop",
-	# "HideDesktopFromThisPC",        # "ShowDesktopInThisPC",
-	# "HideDesktopFromExplorer",    # "ShowDesktopInExplorer",
-	# "HideDocumentsFromThisPC",      # "ShowDocumentsInThisPC",
-	# "HideDocumentsFromExplorer",  # "ShowDocumentsInExplorer",
-	# "HideDownloadsFromThisPC",      # "ShowDownloadsInThisPC",
-	# "HideDownloadsFromExplorer",  # "ShowDownloadsInExplorer",
-	"HideMusicFromThisPC", # "ShowMusicInThisPC",
-	"HideMusicFromExplorer", # "ShowMusicInExplorer",
-	# "HidePicturesFromThisPC",       # "ShowPicturesInThisPC",
-	# "HidePicturesFromExplorer",   # "ShowPicturesInExplorer",
-	"HideVideosFromThisPC", # "ShowVideosInThisPC",
-	"HideVideosFromExplorer", # "ShowVideosInExplorer",
+	"ShowThisPCOnDesktop",	# "HideThisPCFromDesktop",
+	"ShowUserFolderOnDesktop", # "HideUserFolderFromDesktop",
+	"ShowDesktopInThisPC", # "HideDesktopFromThisPC",
+	"ShowDesktopInExplorer", # "HideDesktopFromExplorer",
+	"ShowDocumentsInThisPC", # "HideDocumentsFromThisPC",
+	"ShowDocumentsInExplorer", # "HideDocumentsFromExplorer",
+	"ShowDownloadsInThisPC", # "HideDownloadsFromThisPC",
+	"ShowDownloadsInExplorer", # "HideDownloadsFromExplorer",
+	"ShowMusicInThisPC", # "HideMusicFromThisPC",
+	"ShowMusicInExplorer", # "HideMusicFromExplorer",
+	"ShowPicturesInThisPC", # "HidePicturesFromThisPC",
+	"ShowPicturesInExplorer", # "HidePicturesFromExplorer",
+	"ShowVideosInThisPC", # "HideVideosFromThisPC",
+	"ShowVideosInExplorer", # "HideVideosFromExplorer",
 	"Hide3DObjectsFromThisPC", # "Show3DObjectsInThisPC",
 	"Hide3DObjectsFromExplorer", # "Show3DObjectsInExplorer",
 	# "DisableThumbnails",          # "EnableThumbnails",
@@ -162,14 +176,14 @@ $tweaks = @(
 
 	### Application Tweaks ###
 	# "EnableOneDrive",
-	"UninstallMsftBloat", # "InstallMsftBloat",
-	"UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
+	# "UninstallMsftBloat", # "InstallMsftBloat",
+	# "UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
 	# "UninstallWindowsStore",      # "InstallWindowsStore",
 	# "DisableXboxFeatures",          # "EnableXboxFeatures",
-	"DisableAdobeFlash", # "EnableAdobeFlash",
+	# "DisableAdobeFlash", # "EnableAdobeFlash",
 	"InstallMediaPlayer", # "UninstallMediaPlayer",
-	"UninstallInternetExplorer", # "InstallInternetExplorer",
-	"UninstallWorkFolders", # "InstallWorkFolders",
+	# "UninstallInternetExplorer", # "InstallInternetExplorer",
+	# "UninstallWorkFolders", # "InstallWorkFolders",
 	"InstallLinuxSubsystem", # "UninstallLinuxSubsystem",
 	# "InstallHyperV",              # "UninstallHyperV",
 	"SetPhotoViewerAssociation", # "UnsetPhotoViewerAssociation",
@@ -240,7 +254,7 @@ Function TitusRegistryTweaks {
 	Set-ItemProperty -Path $UpdatesPath -Name "DeferQualityUpdatesPeriodInDays" -Type DWord -Value 4
 	If (!(Get-ItemProperty $UpdatesPath  ActiveHoursEnd)) { New-ItemProperty -Path $UpdatesPath -Name "ActiveHoursEnd" -Type DWord -Value 2	}
 	Set-ItemProperty -Path $UpdatesPath -Name "ActiveHoursEnd" -Type DWord -Value 2
-	If (!(Get-ItemProperty $UpdatesPath  DeferQualityUpdatesPeriodInDays)) { New-ItemProperty -Path $UpdatesPath -Name "ActiveHoursStart" -Type DWord -Value 8 }
+	If (!(Get-ItemProperty $UpdatesPath  ActiveHoursStart)) { New-ItemProperty -Path $UpdatesPath -Name "ActiveHoursStart" -Type DWord -Value 8 }
 	Set-ItemProperty -Path $UpdatesPath -Name "ActiveHoursStart" -Type DWord -Value 8
 }
 Function InstallTitusProgs {
@@ -272,8 +286,12 @@ Function InstallBrave {
 		}
 		switch ($selection) {
 			'y' {
-				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
-				~/Downloads/brave.exe
+				try {
+					Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
+					~/Downloads/brave.exe
+				} catch {
+					Start-Sleep -Seconds 4 
+				}
 			}
 			'n' { Break }
 			'q' { Exit }
@@ -301,6 +319,162 @@ Function ChangeDefaultApps {
 	Write-Output "Setting Default Programs - Notepad++ Brave VLC IrFanView"
 	Start-BitsTransfer -Source "https://raw.githubusercontent.com/ChrisTitusTech/win10script/master/MyDefaultAppAssociations.xml" -Destination $HOME\Desktop\MyDefaultAppAssociations.xml
 	dism /online /Import-DefaultAppAssociations:"%UserProfile%\Desktop\MyDefaultAppAssociations.xml"
+}
+
+#########
+# Personalized NerdyGriffin Customizations
+#########
+
+$PSScriptRoot
+
+Function InstallPipeworks {
+	Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
+	Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
+	Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction SilentlyContinue
+	RefreshEnv
+}
+
+Function InstallPowerlineInPowerShell {
+	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
+	Install-Module posh-git -Scope CurrentUser -ErrorAction SilentlyContinue
+	Install-Module oh-my-posh -Scope CurrentUser -ErrorAction SilentlyContinue
+	Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
+	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction SilentlyContinue
+	Write-Host "Adding Modules for Powerline to PowerShell Profile..."
+	$PowerlineProfile = @(
+		"# Dependencies for powerline",
+		"Import-Module posh-git",
+		"Import-Module oh-my-posh",
+		"Set-Theme Paradox"
+	)
+	foreach ($ProfileString in $PowerlineProfile) {
+		if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
+			Add-Content -Path $PROFILE -Value $ProfileString
+		}
+	}
+}
+
+Function SetupPSReadlineForPowerShell {
+	if (-Not(Get-Module -ListAvailable -Name PSReadLine)) {
+		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
+	}
+	if (Get-Module -ListAvailable -Name PSReadLine) {
+		$PSReadlineProfile = @(
+			"Import-Module PSReadLine",
+			"Set-PSReadLineOption -EditMode Emacs -HistoryNoDuplicates -HistorySearchCursorMovesToEnd",
+			"Set-PSReadLineOption -BellStyle Audible -DingTone 512",
+			"# Creates an alias for ls like I use in Bash",
+			"Set-Alias -Name v -Value Get-ChildItem"
+		)
+		foreach ($ProfileString in $PSReadlineProfile) {
+			if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
+				Add-Content -Path $PROFILE -Value $ProfileString
+			}
+		}
+	}
+}
+
+Function SchedulePowerShellUpdateHelp {
+	Write-Host "Checking for existing UpdateHelpJob..."
+	if (Get-ScheduledJob UpdateHelpJob -ErrorAction SilentlyContinue) {
+		Write-Host "UpdateHelpJob is already set" -ForegroundColor Green
+	} else {
+		Write-Host "An existing UpdateHelpJob was not found, so one will be created." -ForegroundColor Magenta
+		Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
+		$Trigger = New-JobTrigger -Daily -At "3 AM"
+		Register-ScheduledJob -Name "UpdateHelpJob" -ScriptBlock { Update-Help } -Trigger $Trigger
+	}
+}
+
+Function AddPowerShellToContextMenu {
+	$PowerShellContextMenuReg = $PSScriptRoot + "\RegistryTweaks\PowerShell Context Menu Hacks\Add PowerShell to Context Menu.reg"
+	if (Test-Path "$PowerShellContextMenuReg") {
+		Write-Host 'Adding "Open PowerShell Here" to Context Menu'
+		reg import $PowerShellContextMenuReg
+	} else {
+		Write-Warning "Could not find '" $PowerShellContextMenuReg "'"
+		Write-Host "Attempting to set registry changes manually"
+		If (!(Test-Path "HKCR:")) {
+			New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+		}
+		If (!(Test-Path "HKCR:\Directory\shell\powershellmenu")) {
+			New-Item -Path "HKCR:\Directory\shell\powershellmenu" | Out-Null
+		}
+		Set-Item -Path "HKCR:\Directory\shell\powershellmenu" -Value "Open PowerShell Here"
+		If (!(Test-Path "HKCR:\Directory\shell\powershellmenu\command")) {
+			New-Item -Path "HKCR:\Directory\shell\powershellmenu\command" | Out-Null
+		}
+		Set-Item -Path "HKCR:\Directory\shell\powershellmenu\command" -Value "C:\\\\Windows\\\\system32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe -NoExit -Command Set-Location -LiteralPath '%L'"
+	}
+	Start-Sleep -Seconds 4
+}
+
+Function InstallOpenSSHServer {
+	if (-Not(Get-ComputerName | Select-String "LAPTOP")) {
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Install OpenSSH Server? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
+			}
+			switch ($selection) {
+				'y' {
+					Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
+					# Install the OpenSSH Client
+					Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+					Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
+					# Install the OpenSSH Server
+					Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+					Write-Host 'Starting sshd service' -ForegroundColor Cyan
+					Start-Service sshd;
+					Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
+					Start-Service ssh-agent;
+					Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
+					Set-Service sshd -StartupType Automatic;
+					Set-Service ssh-agent -StartupType Automatic;
+					Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
+					# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
+					# If the firewall does not exist, create one
+					if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
+						Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
+						New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
+					}
+					Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
+					# This should return a status of Running
+					Get-Service ssh-agent
+					if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
+						Start-Service ssh-agent
+					}
+					# Set the default shell to be PowerShell.exe
+					Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
+					New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+					Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
+					choco install ssh-copy-id -y
+					Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
+					Start-Sleep -Seconds 4
+				}
+				'n' { Break }
+				'q' { Exit }
+			}
+		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+	}
+}
+
+Function InstallCustomWindowsTerminalSettings {
+	Clear-Host
+	# Copy over my custom Windows Terminal settings
+	$WindowsTerminalBackupSettingsPath = $PSScriptRoot + "\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+	$WindowsTerminalLocalSettingsPath = """$env:LOCALAPPDATA""\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+	if (Test-Path "$WindowsTerminalBackupSettingsPath") {
+		Write-Host "Copying custom Windows Terminal config..."
+		Copy-Item "$WindowsTerminalBackupSettingsPath" "$WindowsTerminalLocalSettingsPath";	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
+	}
 }
 
 ##########
@@ -2106,7 +2280,7 @@ function UninstallThirdPartyBloat {
 	Get-AppxPackage "A278AB0D.MarchofEmpires" | Remove-AppxPackage
 	Get-AppxPackage "ActiproSoftwareLLC.562882FEEB491" | Remove-AppxPackage
 	Get-AppxPackage "AdobeSystemsIncorporated.AdobePhotoshopExpress" | Remove-AppxPackage
-	Get-AppxPackage "CAF9E577.Plex" | Remove-AppxPackage
+	# Get-AppxPackage "CAF9E577.Plex" | Remove-AppxPackage
 	Get-AppxPackage "D52A8D61.FarmVille2CountryEscape" | Remove-AppxPackage
 	Get-AppxPackage "D5EA27B7.Duolingo-LearnLanguagesforFree" | Remove-AppxPackage
 	Get-AppxPackage "DB6EA5DB.CyberLinkMediaSuiteEssentials" | Remove-AppxPackage
@@ -2119,7 +2293,7 @@ function UninstallThirdPartyBloat {
 	Get-AppxPackage "king.com.BubbleWitch3Saga" | Remove-AppxPackage
 	Get-AppxPackage "king.com.CandyCrushSodaSaga" | Remove-AppxPackage
 	Get-AppxPackage "PandoraMediaInc.29680B314EFC2" | Remove-AppxPackage
-	Get-AppxPackage "SpotifyAB.SpotifyMusic" | Remove-AppxPackage
+	# Get-AppxPackage "SpotifyAB.SpotifyMusic" | Remove-AppxPackage
 	Get-AppxPackage "WinZipComputing.WinZipUniversal" | Remove-AppxPackage
 	Get-AppxPackage "XINGAG.XING" | Remove-AppxPackage
 }
@@ -2278,11 +2452,13 @@ Function UninstallLinuxSubsystem {
 
 # Install Hyper-V - Not applicable to Home
 Function InstallHyperV {
-	Write-Output "Installing Hyper-V..."
-	If ((Get-WmiObject -Class "Win32_OperatingSystem").Caption -like "*Server*") {
-		Install-WindowsFeature -Name "Hyper-V" -IncludeManagementTools -WarningAction SilentlyContinue | Out-Null
-	} Else {
-		Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-All" -NoRestart -WarningAction SilentlyContinue | Out-Null
+	If ((Get-WmiObject -Class "Win32_ComputerSystem").Manufacturer -NotContains "QEMU") {
+		Write-Output "Installing Hyper-V..."
+		If ((Get-WmiObject -Class "Win32_OperatingSystem").Caption -like "*Server*") {
+			Install-WindowsFeature -Name "Hyper-V" -IncludeManagementTools -WarningAction SilentlyContinue | Out-Null
+		} Else {
+			Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-All" -NoRestart -WarningAction SilentlyContinue | Out-Null
+		}
 	}
 }
 

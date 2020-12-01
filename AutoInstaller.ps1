@@ -40,7 +40,7 @@ $tweaks = @(
 	"InstallTitusProgs", #REQUIRED FOR OTHER PROGRAM INSTALLS!
 	"Install7Zip",
 	"InstallNotepadplusplus",
-	"InstallIrfanview",
+	# "InstallIrfanview",
 	"InstallVLC",
 	"InstallAdobe",
 	"InstallBrave",
@@ -57,7 +57,7 @@ $tweaks = @(
 	"CreateSymbolicLinksForAppData",
 	"CreateSymbolicLinksForProgramFiles", # Intended to accomodate distribution of storage space with SSD as C:\ and HDD as D:\
 	"InstallOpenSSHServer",
-	"InstallGriffinProgs",
+	# "InstallGriffinProgs",
 	"InstallCustomWindowsTerminalSettings",
 
 	### Windows Apps
@@ -90,7 +90,7 @@ $tweaks = @(
 	# "DisableSMBServer",           # "EnableSMBServer",
 	# "DisableLLMNR",               # "EnableLLMNR",
 	"SetCurrentNetworkPrivate", # "SetCurrentNetworkPublic",
-	"SetUnknownNetworksPrivate", # "SetUnknownNetworksPublic",
+	"SetUnknownNetworksPublic", # "SetUnknownNetworksPrivate",
 	"DisableNetDevicesAutoInst", # "EnableNetDevicesAutoInst",
 	"DisableCtrldFolderAccess",	# "EnableCtrldFolderAccess",
 	"EnableFirewall",
@@ -110,7 +110,7 @@ $tweaks = @(
 	# "DisableHomeGroups", # "EnableHomeGroups",
 	# "DisableSharedExperiences", # "EnableSharedExperiences",
 	# "DisableRemoteAssistance", # "EnableRemoteAssistance",
-	"EnableRemoteDesktop", # "DisableRemoteDesktop",
+	# "EnableRemoteDesktop", # "DisableRemoteDesktop",
 	"DisableAutoplay", # "EnableAutoplay",
 	"DisableAutorun", # "EnableAutorun",
 	"DisableStorageSense", # "EnableStorageSense",
@@ -137,11 +137,11 @@ $tweaks = @(
 	#"ShowTaskbarSearchIcon",      # "ShowTaskbarSearchBox",
 	# "HideTaskView", # "ShowTaskView",
 	# "ShowSmallTaskbarIcons",        # "ShowLargeTaskbarIcons",
-	"SetTaskbarCombineNever", # "SetTaskbarCombineWhenFull",    # "SetTaskbarCombineAlways",
+	# "SetTaskbarCombineWhenFull",    # "SetTaskbarCombineNever",     # "SetTaskbarCombineAlways",
 	"HideTaskbarPeopleIcon", # "ShowTaskbarPeopleIcon",
-	# "ShowTrayIcons", # "HideTrayIcons",
-	# "DisableSearchAppInStore", # "EnableSearchAppInStore",
-	# "DisableNewAppPrompt", # "EnableNewAppPrompt",
+	"HideTrayIcons", # "ShowTrayIcons",
+	"DisableSearchAppInStore", # "EnableSearchAppInStore",
+	"DisableNewAppPrompt", # "EnableNewAppPrompt",
 	# "SetControlPanelSmallIcons",  # "SetControlPanelLargeIcons",  # "SetControlPanelCategories",
 	"SetVisualFXAppearance", # "SetVisualFXPerformance",
 	# "AddENKeyboard",              # "RemoveENKeyboard",
@@ -150,8 +150,8 @@ $tweaks = @(
 	"Stop-EdgePDF",
 
 	### Explorer UI Tweaks ###
-	"ShowKnownExtensions", # "HideKnownExtensions",
-	"ShowHiddenFiles", # "HideHiddenFiles",
+	# "ShowKnownExtensions", # "HideKnownExtensions", # Handled by Boxstarter
+	# "ShowHiddenFiles", # "HideHiddenFiles", # Handled by Boxstarter
 	"HideSyncNotifications"         # "ShowSyncNotifications",
 	"HideRecentShortcuts", # "ShowRecentShortcuts",
 	"SetExplorerThisPC", # "SetExplorerQuickAccess",
@@ -177,15 +177,15 @@ $tweaks = @(
 	### Application Tweaks ###
 	# "EnableOneDrive",
 	# "UninstallMsftBloat", # "InstallMsftBloat",
-	"UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
+	# "UninstallThirdPartyBloat", # "InstallThirdPartyBloat",
 	# "UninstallWindowsStore",      # "InstallWindowsStore",
-	"EnableXboxFeatures", # "DisableXboxFeatures",
-	"DisableAdobeFlash", # "EnableAdobeFlash",
+	# "DisableXboxFeatures",          # "EnableXboxFeatures",
+	# "DisableAdobeFlash", # "EnableAdobeFlash",
 	"InstallMediaPlayer", # "UninstallMediaPlayer",
 	# "UninstallInternetExplorer", # "InstallInternetExplorer",
 	# "UninstallWorkFolders", # "InstallWorkFolders",
 	"InstallLinuxSubsystem", # "UninstallLinuxSubsystem",
-	"InstallHyperV", # "UninstallHyperV",
+	# "InstallHyperV",              # "UninstallHyperV",
 	"SetPhotoViewerAssociation", # "UnsetPhotoViewerAssociation",
 	"AddPhotoViewerOpenWith", # "RemovePhotoViewerOpenWith",
 	"InstallPDFPrinter"		# "UninstallPDFPrinter",
@@ -234,7 +234,7 @@ function Show-Choco-Menu {
 			$selection = Read-Host "Please make a selection"
 		}
 		switch ($selection) {
-			'y' { choco install $ChocoInstall -y;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 } }
+			'y' { choco install $ChocoInstall -y }
 			'n' { Break }
 			'q' { Exit }
 		}
@@ -286,10 +286,12 @@ Function InstallBrave {
 		}
 		switch ($selection) {
 			'y' {
-				Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
-				if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-				~/Downloads/brave.exe
-				if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
+				try {
+					Invoke-WebRequest -Uri "https://laptop-updates.brave.com/download/CHR253" -OutFile $env:USERPROFILE\Downloads\brave.exe
+					~/Downloads/brave.exe
+				} catch {
+					Start-Sleep -Seconds 4 
+				}
 			}
 			'n' { Break }
 			'q' { Exit }
@@ -326,37 +328,18 @@ Function ChangeDefaultApps {
 $PSScriptRoot
 
 Function InstallPipeworks {
-	Clear-Host
-	try {
-		Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
-		Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
-		Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction Stop
-	} catch {
-		Write-Warning "Something when wrong while trying to install Pipeworks"
-		Start-Sleep -Seconds 4
-	}
-	if (Get-Command -Name RefreshEnv -ErrorAction SilentlyContinue) {
-		RefreshEnv
-	}
+	Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
+	Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
+	Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction SilentlyContinue
+	RefreshEnv
 }
 
 Function InstallPowerlineInPowerShell {
-	Clear-Host
-	try {
-		Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
-		Install-Module posh-git -Scope CurrentUser -ErrorAction Stop
-		Install-Module oh-my-posh -Scope CurrentUser -ErrorAction Stop
-	} catch {
-		Write-Warning "Something when wrong while trying to install Posh-Git and/or Oh-My-Posh"
-		Start-Sleep -Seconds 4
-	}
-	try {
-		Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
-		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction Stop
-	} catch {
-		Write-Warning "Something when wrong while trying to install PSReadLine"
-		Start-Sleep -Seconds 4
-	}
+	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
+	Install-Module posh-git -Scope CurrentUser -ErrorAction SilentlyContinue
+	Install-Module oh-my-posh -Scope CurrentUser -ErrorAction SilentlyContinue
+	Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
+	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction SilentlyContinue
 	Write-Host "Adding Modules for Powerline to PowerShell Profile..."
 	$PowerlineProfile = @(
 		"# Dependencies for powerline",
@@ -375,53 +358,31 @@ Function SetupPSReadlineForPowerShell {
 	if (-Not(Get-Module -ListAvailable -Name PSReadLine)) {
 		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
 	}
-	$PSReadlineProfile = @(
-		"Import-Module PSReadLine",
-		"Set-PSReadLineOption -EditMode Emacs -HistoryNoDuplicates -HistorySearchCursorMovesToEnd",
-		"Set-PSReadLineOption -BellStyle Audible -DingTone 512",
-		"# Creates an alias for ls like I use in Bash",
-		"Set-Alias -Name v -Value Get-ChildItem"
-	)
-	foreach ($ProfileString in $PSReadlineProfile) {
-		if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
-			Add-Content -Path $PROFILE -Value $ProfileString
+	if (Get-Module -ListAvailable -Name PSReadLine) {
+		$PSReadlineProfile = @(
+			"Import-Module PSReadLine",
+			"Set-PSReadLineOption -EditMode Emacs -HistoryNoDuplicates -HistorySearchCursorMovesToEnd",
+			"Set-PSReadLineOption -BellStyle Audible -DingTone 512",
+			"# Creates an alias for ls like I use in Bash",
+			"Set-Alias -Name v -Value Get-ChildItem"
+		)
+		foreach ($ProfileString in $PSReadlineProfile) {
+			if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
+				Add-Content -Path $PROFILE -Value $ProfileString
+			}
 		}
 	}
 }
 
 Function SchedulePowerShellUpdateHelp {
-	Clear-Host
-	Write-Host "Checking for UpdateHelpJob..."
+	Write-Host "Checking for existing UpdateHelpJob..."
 	if (Get-ScheduledJob UpdateHelpJob -ErrorAction SilentlyContinue) {
 		Write-Host "UpdateHelpJob is already set" -ForegroundColor Green
 	} else {
-		do {
-			Write-Host "================ Do You Want to Schedule a Job That Runs an `Update-Help` Command? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
-					$Trigger = New-JobTrigger -Daily -At "3 AM"
-					Register-ScheduledJob -Name "UpdateHelpJob" -ScriptBlock { Update-Help } -Trigger $Trigger
-					Start-Sleep -Seconds 4
-				}
-				'n' { Break }
-				'q' { Exit }
-				default {
-					Clear-Host
-					Write-Host "Invalid input"
-					Write-Host
-				}
-			}
-		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
+		Write-Host "An existing UpdateHelpJob was not found, so one will be created." -ForegroundColor Magenta
+		Write-Host 'Creating a scheduled job that runs an `Update-Help` command daily at 3 AM.'
+		$Trigger = New-JobTrigger -Daily -At "3 AM"
+		Register-ScheduledJob -Name "UpdateHelpJob" -ScriptBlock { Update-Help } -Trigger $Trigger
 	}
 }
 
@@ -448,360 +409,61 @@ Function AddPowerShellToContextMenu {
 	Start-Sleep -Seconds 4
 }
 
-Function InstallIconExportPowerShell {
-	Clear-Host
-	Write-Host "Installing 'Export-Icon' -- PowerShell script for exporting icons from .exe and .dll"
-	Install-Module IconExport -Force;	if ($LASTEXITCODE) { Start-Sleep -Seconds 4 }
-}
-
-Function CreateSymbolicLinkWithBackup {
-	param(
-		[Parameter(Mandatory)]
-		[ValidateNotNullOrEmpty()]
-		[string]$SymbolicLinkPath,
-
-		[Parameter(Mandatory)]
-		[ValidateNotNullOrEmpty()]
-		[string]$SymbolicLinkTarget
-	)
-
-	# if ((Test-Path $SymbolicLinkPath) -and ($SymbolicLinkPath -NotMatch $env:ProgramFiles) -and ($SymbolicLinkPath -NotMatch ${env:ProgramFiles(x86)})) {
-	if (Test-Path $SymbolicLinkPath) {
-		if (Get-Item $SymbolicLinkPath | Where-Object Attributes -Match ReparsePoint) {
-			Write-Host "'" $SymbolicLinkPath "' is already a link" -ForegroundColor Magenta
-		} elseif (Test-Path $SymbolicLinkTarget) {
-			# } elseif ((Test-Path $SymbolicLinkTarget) -and ($SymbolicLinkTarget -NotMatch "D:\")) {
-			try {
-				Copy-Item -Path $SymbolicLinkPath\* -Destination "$SymbolicLinkTarget" -Force -Recurse -Verbose -ErrorAction Stop
-				Remove-Item -Path "$SymbolicLinkPath" -Recurse -Force -Verbose -ErrorAction Stop
-			} catch {
-				Write-Error "Something went wrong while trying to copy the contents of '" $SymbolicLinkPath "' to '" $SymbolicLinkTarget "'"
-				Break
-			}
-		} else {
-			try {
-				Move-Item -Path "$SymbolicLinkPath" -Destination "$SymbolicLinkTarget" -Force -Verbose -ErrorAction Stop
-			} catch {
-				Write-Error "Something went wrong while trying to move '" $SymbolicLinkPath "' to '" $SymbolicLinkTarget "'"
-				Break
-			}
-		}
-	}
-	if (-Not(Test-Path $SymbolicLinkTarget)) {
-		New-Item -Path "$SymbolicLinkTarget" -Type Directory -Verbose
-	}
-	New-Item -Path "$SymbolicLinkPath" -Type SymbolicLink -Target "$SymbolicLinkTarget" -Force -Verbose
-}
-
-# Not yet implemented
-Function CreateSymbolicLinksToServerShares {
-	# Forced to false since function is not yet implemented.
-	If ($False -And ((Get-WmiObject -Class "Win32_ComputerSystem").Manufacturer -Contains "QEMU") -And (Get-ComputerName | Select-String "DESKTOP")) {
-		do {
-			Clear-Host
-			Write-Host "================ Do You Want to Create SymbolicLinks in '" $HOME "' to Custom Media Locations on a Server Share? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					# TODO: Prompt user for the name of the hostname or domain name of the file server \\HOME-SERVER\ or \\files.someplace.net\
-					# Then prompt for the name of the share (i.e. media in this case)
-					$ServerName = "GRIFFINUNRAID"
-					$MediaShare = "media"
-					$ServerPath = "\\" + $ServerName + "\" + $MediaShare
-					if (Test-Path "$ServerPath") {
-						Write-Host "Creating Custom SymbolicLinks in" $HOME "..."
-						foreach ($FolderName in @("Music", "Pictures", "Videos")) {
-							$SymbolicLinkPath = $HOME + "\" + $FolderName
-							$SymbolicLinkTarget = $ServerPath + $FolderName
-							CreateSymbolicLinkWithBackup -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
-						}
-					}
-				}
-				'n' { Break }
-				'q' { Exit }
-			}
-		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	}
-}
-
-Function CreateSymbolicLinksForAppData {
-	if (Test-Path "D:\") {
-		do {
-			Clear-Host
-			Write-Host "================ Do You Want to Create SymbolicLinks in '" $env:APPDATA "' to Custom Install Locations on 'D:\' ? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					Write-Host "Creating Custom SymbolicLinks in" $env:APPDATA "..."
-					foreach ($FolderName in @(".gitkraken", ".minecraft", "Citra")) {
-						$SymbolicLinkPath = $env:APPDATA + "\" + $FolderName
-						$SymbolicLinkTarget = "D:\" + $FolderName
-						CreateSymbolicLinkWithBackup -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
-					}
-				}
-				'n' { Break }
-				'q' { Exit }
-			}
-		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	} else {
-		Clear-Host
-		Write-Host "Drive D:\ not found, skipping CreateSymbolicLinksForAppData..."
-		Start-Sleep -Seconds 4
-	}
-}
-
-Function CreateSymbolicLinksForProgramFiles {
-	if (Test-Path "D:\") {
-		do {
-			Clear-Host
-			Write-Host "================ Do You Want to Create SymbolicLinks in '" $env:ProgramFiles "' to Custom Install Locations on 'D:\' ? ================"
-			Write-Host "Y: Press 'Y' to do this."
-			if ($ConfirmAll) {
-				$selection = 'y'
-			} else {
-				Write-Host "N: Press 'N' to skip this."
-				Write-Host "Q: Press 'Q' to stop the entire script."
-				$selection = Read-Host "Please make a selection"
-			}
-			switch ($selection) {
-				'y' {
-					Write-Host "Creating Custom SymbolicLinks in" $env:ProgramFiles "..."
-					$ProgramFilesLocations = @( $env:ProgramFiles, ${env:ProgramFiles(x86)} )
-					$SymbolicLinkNames = @(
-						"Cave Story Deluxe",
-						"Cemu Emulator",
-						"Dolphin",
-						"Epic Games",
-						"GOG Galaxy",
-						"MATLAB",
-						"Origin",
-						"Rockstar Games",
-						"Steam",
-						"Ubisoft"
-					)
-					foreach ($ProgramFiles in $ProgramFilesLocations) {
-						foreach ($FolderName in $SymbolicLinkNames) {
-							$SymbolicLinkPath = $ProgramFiles + "\" + $FolderName
-							$SymbolicLinkTarget = "D:\" + $FolderName
-							CreateSymbolicLinkWithBackup -SymbolicLinkPath $SymbolicLinkPath -SymbolicLinkTarget $SymbolicLinkTarget
-						}
-					}
-				}
-				'n' { Break }
-				'q' { Exit }
-			}
-		}
-		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-	} else {
-		Clear-Host
-		Write-Host "Drive D:\ not found, skipping CreateSymbolicLinksForProgramFiles..."
-		Start-Sleep -Seconds 4
-	}
-}
-
 Function InstallOpenSSHServer {
-	do {
-		Clear-Host
-		Write-Host "================ Do You Want to Install OpenSSH Server? ================"
-		Write-Host "Y: Press 'Y' to do this."
-		if ($ConfirmAll) {
-			$selection = 'y'
-		} else {
-			Write-Host "N: Press 'N' to skip this."
-			Write-Host "Q: Press 'Q' to stop the entire script."
-			$selection = Read-Host "Please make a selection"
-		}
-		switch ($selection) {
-			'y' {
-				Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
-				# Install the OpenSSH Client
-				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
-				Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
-				# Install the OpenSSH Server
-				Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
-				Write-Host 'Starting sshd service' -ForegroundColor Cyan
-				Start-Service sshd;
-				Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
-				Start-Service ssh-agent;
-				Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
-				Set-Service sshd -StartupType Automatic;
-				Set-Service ssh-agent -StartupType Automatic;
-				Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
-				# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
-				# If the firewall does not exist, create one
-				if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
-					Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
-					New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
-				}
-				Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
-				# This should return a status of Running
-				Get-Service ssh-agent
-				if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
-					Start-Service ssh-agent
-				}
-				# Set the default shell to be PowerShell.exe
-				Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
-				New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
-				Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
-				choco install ssh-copy-id -y
-				Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
-				Start-Sleep -Seconds 4
+	if (-Not(Get-ComputerName | Select-String "LAPTOP")) {
+		do {
+			Clear-Host
+			Write-Host "================ Do You Want to Install OpenSSH Server? ================"
+			Write-Host "Y: Press 'Y' to do this."
+			if ($ConfirmAll) {
+				$selection = 'y'
+			} else {
+				Write-Host "N: Press 'N' to skip this."
+				Write-Host "Q: Press 'Q' to stop the entire script."
+				$selection = Read-Host "Please make a selection"
 			}
-			'n' { Break }
-			'q' { Exit }
-		}
-	}
-	until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
-}
-
-Function InstallPresetFromJson {
-	param(
-		[Parameter(Mandatory)]
-		[ValidateNotNullOrEmpty()]
-		[string]$PresetNumber
-	)
-	$PresetPackagesFilePath = $PSScriptRoot + "\presets.json"
-	if (Test-Path $PresetPackagesFilePath) {
-		$PresetPackages = Get-Content $PresetPackagesFilePath | ConvertFrom-Json
-	} else {
-		Write-Error "Could not find presets.json"
-		Exit
-	}
-	# Initialize the array with some default packages
-	$ChocoPackageArray = New-Object System.Collections.ArrayList
-	# Read the default packages from presets.json
-	foreach ($Category in $PresetPackages.default) {
-		foreach ($PackageName in $Category.packages) {
-			$Package = New-Object System.Object
-			$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-			$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-			$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Default"
-			$ChocoPackageArray.Add($Package) | Out-Null
-		}
-	}
-	switch ($PresetNumber) {
-		2 {
-			# Read the desktop packages from presets.json
-			foreach ($Category in $PresetPackages.desktop) {
-				foreach ($PackageName in $Category.packages) {
-					$Package = New-Object System.Object
-					$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-					$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-					$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Desktop"
-					$ChocoPackageArray.Add($Package) | Out-Null
-				}
-			}
-		}
-		default {
-			# Read the laptop packages from presets.json
-			foreach ($Category in $PresetPackages.laptop) {
-				foreach ($PackageName in $Category.packages) {
-					$Package = New-Object System.Object
-					$Package | Add-Member -MemberType NoteProperty -Name "PackageName" -Value $PackageName
-					$Package | Add-Member -MemberType NoteProperty -Name "Category" -Value $Category.name
-					$Package | Add-Member -MemberType NoteProperty -Name "Preset" -Value "Laptop"
-					$ChocoPackageArray.Add($Package) | Out-Null
-				}
-			}
-		}
-	}
-	do {
-		Clear-Host
-		Write-Host "================ The following packages have been selected by this preset ================"
-		# Print out a table of all the selected packages
-		$ChocoPackageArray | Format-Table -Property @{Label = "index"; Expression = { $ChocoPackageArray.IndexOf($_) } }, "PackageName", "Category", "Preset"
-		Write-Host "================ Please confirm that the above list of packages is correct ================"
-		# Get the total number of packages that have been selected for this preset
-		$PackageCount = $ChocoPackageArray.Count
-		Write-Host "$PackageCount packages have been selected for install."
-		Write-Host "================ Do You Want to Install All $PackageCount Packages? ================"
-		Write-Host "Y: Press 'Y' to do this."
-		if ($ConfirmAll) {
-			$selection = 'y'
-		} else {
-			Write-Host "N: Press 'N' to skip this."
-			Write-Host "Q: Press 'Q' to stop the entire script."
-			$selection = Read-Host "Please make a selection"
-		}
-		switch ($selection) {
-			'y' {
-				Write-Host "Beginning install..." -ForegroundColor Green
-				foreach ($Package in $ChocoPackageArray) {
-					Clear-Host
-					Write-Host "================ Installing "$Package.PackageName" ================" -ForegroundColor Yellow
-					if ($Package.Category -match "Chocolatey") {
-						choco upgrade $Package.PackageName -yf
-					} else {
-						# 'choco upgrade' will upgrade the package if there is a new version available,
-						# or it will install the package if it is not already installed
-						choco upgrade $Package.PackageName -y
+			switch ($selection) {
+				'y' {
+					Write-Host 'Installing OpenSSH Client' -ForegroundColor Yellow
+					# Install the OpenSSH Client
+					Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Client* | Add-WindowsCapability -Online
+					Write-Host 'Installing OpenSSH Server' -ForegroundColor Yellow
+					# Install the OpenSSH Server
+					Get-WindowsCapability -Online | Where-Object Name -Like *OpenSSH.Server* | Add-WindowsCapability -Online
+					Write-Host 'Starting sshd service' -ForegroundColor Cyan
+					Start-Service sshd;
+					Write-Host 'Starting ssh-agent service' -ForegroundColor Cyan
+					Start-Service ssh-agent;
+					Write-Host "Setting 'sshd' and 'ssh-agent' services to startup automatically" -ForegroundColor Green
+					Set-Service sshd -StartupType Automatic;
+					Set-Service ssh-agent -StartupType Automatic;
+					Write-Host "Confirm the Firewall rule is configured. It should be created automatically by setup."
+					# There should be a firewall rule named "OpenSSH-Server-In-TCP", which should be enabled
+					# If the firewall does not exist, create one
+					if (-Not(Get-NetFirewallRule -Name *ssh* | Where-Object DisplayName -Like "OpenSSH*Server")) {
+						Write-Host "Adding firewall rule for OpenSSH server" -ForegroundColor Magenta
+						New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
 					}
-					if ($LASTEXITCODE) {
-						Start-Sleep -Seconds 4
+					Write-Host "Confirming status of ssh-agent servive" -ForegroundColor Cyan
+					# This should return a status of Running
+					Get-Service ssh-agent
+					if (-Not(Get-Service ssh-agent | Where-Object Status -Match "Running")) {
+						Start-Service ssh-agent
 					}
+					# Set the default shell to be PowerShell.exe
+					Write-Host "Setting the default shell to be PowerShell.exe instead of cmd.exe"
+					New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+					Write-Host "Installing ssh-copy-id for Windows" -ForegroundColor Yellow
+					choco install ssh-copy-id -y
+					Write-Host "OpenSSH installation should now be complete" -ForegroundColor Green
+					Start-Sleep -Seconds 4
 				}
+				'n' { Break }
+				'q' { Exit }
 			}
-			'd' {
-				# Debug Mode
-				$DebugPreference = "Continue"
-				Write-Debug "DEBUG: Calling 'choco list <PackageName>' for each package..." -ForegroundColor Green
-				foreach ($Package in $ChocoPackageArray) {
-					Write-Debug "DEBUG: Listing "$Package.PackageName"" -ForegroundColor Cyan
-					choco list $Package.PackageName
-				}
-			}
-			'n' { Break }
-			'q' { Exit }
 		}
+		until ($selection -match "y" -or $selection -match "n" -or $selection -match "q")
 	}
-	until ($selection -match "y" -or $selection -match "d" -or $selection -match "n" -or $selection -match "q")
-}
-
-function Show-Json-Menu {
-	do {
-		Clear-Host
-		Write-Host "================ Select Preset to load from JSON ================"
-		Write-Host "0: Detect automatically (default)"
-		Write-Host "1: Laptop Preset"
-		Write-Host "2: Desktop Preset"
-		Write-Host
-		Write-Host "N: Press 'N' to skip this."
-		Write-Host "Q: Press 'Q' to stop the entire script."
-		$selection = Read-Host "Please make a selection"
-		switch ($selection) {
-			0 {
-				# Attempt to detect computer by checking the computer name
-				if (Get-ComputerName | Select-String "DESKTOP") { $selection = 2 }
-				else {	$selection = 1 }
-			}
-			1 {	Write-Host "Installing Laptop preset." }
-			2 {	Write-Host "Installing Desktop preset." }
-			'n' { Break }
-			'q' { Exit }
-		}
-	}
-	until (($selection -ge 0 -and $selection -le 2) -or $selection -match "n" -or $selection -match "q")
-	if ($selection -ge 0 -and $selection -le 2) { InstallPresetFromJson -PresetNumber $selection }
-}
-
-Function InstallGriffinProgs {
-	Show-Json-Menu -Title "Select Preset to load from JSON"
 }
 
 Function InstallCustomWindowsTerminalSettings {
