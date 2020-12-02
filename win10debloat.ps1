@@ -48,8 +48,8 @@ $tweaks = @(
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
-	"InstallPowerlineInPowerShell",
-	"SetupPSReadlineForPowerShell", # Sets PSReadline to emulate Bash-like behavior
+	"InstallPowerline",
+	"InstallPSReadline", # Sets PSReadline to emulate Bash-like behavior
 	"InstallPipeworks",
 	"SchedulePowerShellUpdateHelp",
 	"AddPowerShellToContextMenu",
@@ -322,31 +322,43 @@ Function ChangeDefaultApps {
 
 $PSScriptRoot
 
-Function InstallPowerlineInPowerShell {
-	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
-	Install-Module posh-git -Scope CurrentUser -ErrorAction SilentlyContinue
-	Install-Module oh-my-posh -Scope CurrentUser -ErrorAction SilentlyContinue
-	Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
-	Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction SilentlyContinue
-	Write-Host "Adding Modules for Powerline to PowerShell Profile..."
-	$PowerlineProfile = @(
-		"# Dependencies for powerline",
-		"Import-Module posh-git",
-		"Import-Module oh-my-posh",
-		"Set-Theme Paradox"
-	)
-	foreach ($ProfileString in $PowerlineProfile) {
-		if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
-			Add-Content -Path $PROFILE -Value $ProfileString
+Function InstallPowerline {
+	try {
+		Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
+		if (-Not(Get-Module -ListAvailable -Name posh-git)) {
+			Install-Module posh-git -Scope AllUsers -Force -SkipPublisherCheck
+		} else { Write-Host "Module 'posh-git' already installed" }
+		if (-Not(Get-Module -ListAvailable -Name oh-my-posh)) {
+			Install-Module oh-my-posh -Scope AllUsers -Force -SkipPublisherCheck
+		} else { Write-Host "Module 'oh-my-posh' already installed" }
+
+		Write-Host "Appending Configuration for Powerline to PowerShell Profile..."
+		$PowerlineProfile = @(
+			"# Dependencies for powerline",
+			"Import-Module posh-git",
+			"Import-Module oh-my-posh",
+			"Set-Theme Paradox"
+		)
+		foreach ($ProfileString in $PowerlineProfile) {
+			if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
+				Add-Content -Path $PROFILE -Value $ProfileString
+			}
 		}
+		if (Get-Command refreshenv -ErrorAction SilentlyContinue) { refreshenv }
+	} catch {
+		Write-Warning 'Powerline failed to install'
+		# Move on if Powerline install fails due to error
 	}
 }
 
-Function SetupPSReadlineForPowerShell {
-	if (-Not(Get-Module -ListAvailable -Name PSReadLine)) {
-		Install-Module -Name PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
-	}
-	if (Get-Module -ListAvailable -Name PSReadLine) {
+Function InstallPSReadline {
+	try {
+		Write-Host "Installing PSReadLine -- [Bash-like CLI features and Optional Dependency for Powerline]"
+		if (-Not(Get-Module -ListAvailable -Name PSReadLine)) {
+			Install-Module -Name PSReadLine -Scope AllUsers -Force -SkipPublisherCheck
+		} else { Write-Host "Module 'PSReadLine' already installed" }
+
+		Write-Host "Appending Configuration for PSReadLine to PowerShell Profile..."
 		$PSReadlineProfile = @(
 			"Import-Module PSReadLine",
 			"Set-PSReadLineOption -EditMode Emacs -HistoryNoDuplicates -HistorySearchCursorMovesToEnd",
@@ -359,14 +371,25 @@ Function SetupPSReadlineForPowerShell {
 				Add-Content -Path $PROFILE -Value $ProfileString
 			}
 		}
+		if (Get-Command refreshenv -ErrorAction SilentlyContinue) { refreshenv }
+	} catch {
+		Write-Warning 'PSReadline failed to install'
+		# Move on if PSReadline install fails due to errors
 	}
 }
 
 Function InstallPipeworks {
-	Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
-	Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
-	Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction SilentlyContinue
-	RefreshEnv
+	try {
+		Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
+		Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
+		if (-Not(Get-Module -ListAvailable -Name Pipeworks)) {
+			Install-Module -Name Pipeworks -Scope AllUsers -Force -SkipPublisherCheck -AllowClobber
+		} else { Write-Host "Module 'Pipeworks' already installed" }
+		if (Get-Command refreshenv -ErrorAction SilentlyContinue) { refreshenv }
+	} catch {
+		Write-Warning 'Pipeworks failed to install'
+		# Move on if Pipeworks install fails due to errors
+	}
 }
 
 Function SchedulePowerShellUpdateHelp {
