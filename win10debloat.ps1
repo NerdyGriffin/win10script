@@ -22,6 +22,7 @@
 #	- Changed Default Apps to Notepad++, Brave, Irfanview, and more using XML Import feature
 #
 ##########
+
 # Optional parameter to override all user input prompts with 'yes'
 param(
 	[Parameter(Mandatory = $false)]
@@ -47,9 +48,9 @@ $tweaks = @(
 	# "ChangeDefaultApps", # Removed due to issues with steam and resetting default apps
 
 	### NerdyGriffin Additions (Requires "InstallTitusProgs" to be run first)
-	"InstallPipeworks",
 	"InstallPowerlineInPowerShell",
 	"SetupPSReadlineForPowerShell", # Sets PSReadline to emulate Bash-like behavior
+	"InstallPipeworks",
 	"SchedulePowerShellUpdateHelp",
 	"AddPowerShellToContextMenu",
 	"InstallCustomWindowsTerminalSettings",
@@ -321,13 +322,6 @@ Function ChangeDefaultApps {
 
 $PSScriptRoot
 
-Function InstallPipeworks {
-	Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
-	Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
-	Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction SilentlyContinue
-	RefreshEnv
-}
-
 Function InstallPowerlineInPowerShell {
 	Write-Host "Installing Posh-Git and Oh-My-Posh - [Dependencies for Powerline]"
 	Install-Module posh-git -Scope CurrentUser -ErrorAction SilentlyContinue
@@ -366,6 +360,13 @@ Function SetupPSReadlineForPowerShell {
 			}
 		}
 	}
+}
+
+Function InstallPipeworks {
+	Write-Host "Installing Pipeworks -- [CLI Tools for PowerShell]"
+	Write-Host "Description: PowerShell Pipeworks is a framework for writing Sites and Software Services in Windows PowerShell modules."
+	Install-Module -Name Pipeworks -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber -ErrorAction SilentlyContinue
+	RefreshEnv
 }
 
 Function SchedulePowerShellUpdateHelp {
