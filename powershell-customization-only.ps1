@@ -28,6 +28,7 @@ Function InstallPowerline {
 			"Import-Module oh-my-posh",
 			"Set-Theme Paradox"
 		)
+		Write-Host >> $PROFILE # This will create the file if it does not already exist, otherwise it will leave the existing file unchanged
 		foreach ($ProfileString in $PowerlineProfile) {
 			if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
 				Add-Content -Path $PROFILE -Value $ProfileString
@@ -56,6 +57,7 @@ Function InstallPSReadline {
 			"# Creates an alias for ls like I use in Bash",
 			"Set-Alias -Name v -Value Get-ChildItem"
 		)
+		Write-Host >> $PROFILE # This will create the file if it does not already exist, otherwise it will leave the existing file unchanged
 		foreach ($ProfileString in $PSReadlineProfile) {
 			if (-Not(Select-String -Pattern $ProfileString -Path $PROFILE)) {
 				Add-Content -Path $PROFILE -Value $ProfileString
