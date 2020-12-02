@@ -171,6 +171,19 @@
                 "cursorColor": "#FFFFFD",
                 "fontFace": "Cascadia Code PL",
                 "useAcrylic": true
+            },
+            {
+                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                "hidden": false,
+                "name": "PowerShell",
+                "source": "Windows.Terminal.PowershellCore",
+                // Visual styling
+                "acrylicOpacity": 0.7,
+                "background": "#000010",
+                // "colorScheme": "Campbell",
+                // "cursorColor": "#FFFFFD",
+                "fontFace": "Cascadia Code PL",
+                "useAcrylic": true
             }
         ]
     },
