@@ -721,6 +721,9 @@ $essentialtweaks.Add_Click( {
 
 		#Stops edge from taking over as the default .PDF viewer
 		Write-Host "Stopping Edge from taking over as the default .PDF viewer"
+		If (!(Test-Path "HKCR:\")) {
+			New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+		}
 		$NoPDF = "HKCR:\.pdf"
 		$NoProgids = "HKCR:\.pdf\OpenWithProgids"
 		$NoWithList = "HKCR:\.pdf\OpenWithList"
@@ -940,7 +943,7 @@ $onedrive.Add_Click( {
 		Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\OneDrive" -Force -Recurse -ErrorAction SilentlyContinue
 		Remove-Item -Path "$env:PROGRAMDATA\Microsoft OneDrive" -Force -Recurse -ErrorAction SilentlyContinue
 		Remove-Item -Path "$env:SYSTEMDRIVE\OneDriveTemp" -Force -Recurse -ErrorAction SilentlyContinue
-		If (!(Test-Path "HKCR:")) {
+		If (!(Test-Path "HKCR:\")) {
 			New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 		}
 		Remove-Item -Path "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" -Recurse -ErrorAction SilentlyContinue

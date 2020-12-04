@@ -435,7 +435,7 @@ Function AddPowerShellToContextMenu {
 	} else {
 		Write-Warning "Could not find '" $PowerShellContextMenuReg "'"
 		Write-Host "Attempting to set registry changes manually"
-		If (!(Test-Path "HKCR:")) {
+		If (!(Test-Path "HKCR:\")) {
 			New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 		}
 		If (!(Test-Path "HKCR:\Directory\shell\powershellmenu")) {
@@ -2145,7 +2145,7 @@ Function UninstallOneDrive {
 	Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\OneDrive" -Force -Recurse -ErrorAction SilentlyContinue
 	Remove-Item -Path "$env:PROGRAMDATA\Microsoft OneDrive" -Force -Recurse -ErrorAction SilentlyContinue
 	Remove-Item -Path "$env:SYSTEMDRIVE\OneDriveTemp" -Force -Recurse -ErrorAction SilentlyContinue
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 	Remove-Item -Path "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" -Recurse -ErrorAction SilentlyContinue
@@ -2459,7 +2459,7 @@ Function UninstallHyperV {
 # Set Photo Viewer association for bmp, gif, jpg, png and tif
 Function SetPhotoViewerAssociation {
 	Write-Output "Setting Photo Viewer association for bmp, gif, jpg, png and tif..."
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 	ForEach ($type in @("Paint.Picture", "giffile", "jpegfile", "pngfile")) {
@@ -2473,7 +2473,7 @@ Function SetPhotoViewerAssociation {
 # Unset Photo Viewer association for bmp, gif, jpg, png and tif
 Function UnsetPhotoViewerAssociation {
 	Write-Output "Unsetting Photo Viewer association for bmp, gif, jpg, png and tif..."
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 	Remove-Item -Path "HKCR:\Paint.Picture\shell\open" -Recurse -ErrorAction SilentlyContinue
@@ -2488,7 +2488,7 @@ Function UnsetPhotoViewerAssociation {
 # Add Photo Viewer to "Open with..."
 Function AddPhotoViewerOpenWith {
 	Write-Output "Adding Photo Viewer to `"Open with...`""
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 	New-Item -Path "HKCR:\Applications\photoviewer.dll\shell\open\command" -Force | Out-Null
@@ -2501,7 +2501,7 @@ Function AddPhotoViewerOpenWith {
 # Remove Photo Viewer from "Open with..."
 Function RemovePhotoViewerOpenWith {
 	Write-Output "Removing Photo Viewer from `"Open with...`""
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 	Remove-Item -Path "HKCR:\Applications\photoviewer.dll\shell\open" -Recurse -ErrorAction SilentlyContinue
@@ -2716,7 +2716,7 @@ Function Stop-EdgePDF {
 
 	#Stops edge from taking over as the default .PDF viewer
 	Write-Output "Stopping Edge from taking over as the default .PDF viewer"
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 	$NoPDF = "HKCR:\.pdf"
@@ -2755,7 +2755,7 @@ Function CreateRestorePoint {
 }
 
 Function CreatePSDriveHKCR {
-	If (!(Test-Path "HKCR:")) {
+	If (!(Test-Path "HKCR:\")) {
 		New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 	}
 }
