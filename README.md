@@ -1,6 +1,10 @@
 # win10script
 This is the Ultimate Windows 10 Script from a creation from multiple debloat scripts and gists from github. I also added Chocolatey and other tools to the script that I install on every machine.
 
+## This fork is no longer being actively maintained
+This project is no longer being actively maintained, it was replaced by my newer [Boxstarter scripts](https://github.com/NerdyGriffin/Boxstarter-Scripts)
+Please refer to the original project at [ChrisTitusTech/win10script](https://github.com/ChrisTitusTech/win10script)
+
 ## NerdyGriffin Additions
 
 - JSON file `preset.json` which contains customized lists of programs to install, categorized by program type and group together as "presets" (such as "default", "desktop", "laptop"
